@@ -1,5 +1,5 @@
 return {
-	Version = 2,
+	Version = 3,
 	Identity = {
 		DisplayName = "Prospect",
 		Nationality = "Namibia",
@@ -8,15 +8,15 @@ return {
 		ShirtNumber = 9,
 	},
 	Career = {
-		Chapter = "AcademyTrial",
-		Stage = "Arrival",
+		Chapter = "Origins",
+		Stage = "WakeUp",
 		Club = "Unattached",
 		Overall = 60,
 		ManagerTrust = 50,
 		TeamChemistry = 50,
 		FanReputation = 0,
 		MediaReputation = 0,
-		-- The player starts modestly: enough for the cheapest rural room, not enough to skip the early career ladder.
+		-- Modest start: enough for the cheapest room, but not enough to skip the early property ladder.
 		Money = 350,
 	},
 	Properties = {
