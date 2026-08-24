@@ -16,6 +16,18 @@ local function flatUnit(vector)
 	return flat.Unit
 end
 
+local function getControlDirection(player, root)
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		local move = Vector3.new(humanoid.MoveDirection.X, 0, humanoid.MoveDirection.Z)
+		if move.Magnitude > 0.05 then
+			return move.Unit
+		end
+	end
+	return flatUnit(root.CFrame.LookVector)
+end
+
 function BallService:GetRoot(player)
 	local character = player.Character
 	return character and character:FindFirstChild("HumanoidRootPart")
@@ -45,6 +57,9 @@ end
 function BallService:SetDribbling(player, enabled)
 	if enabled and self:CanTouchBall(player) then
 		self.Dribblers[player] = true
+		pcall(function()
+			self.Ball:SetNetworkOwner(nil)
+		end)
 	else
 		self.Dribblers[player] = nil
 	end
@@ -56,15 +71,47 @@ function BallService:UpdateDribble(player)
 		self.Dribblers[player] = nil
 		return
 	end
+
 	local distance = (root.Position - self.Ball.Position).Magnitude
 	if distance > GameConfig.Football.DribbleBreakDistance then
 		self.Dribblers[player] = nil
 		return
 	end
-	local target = root.Position + (root.CFrame.LookVector * GameConfig.Football.DribbleDistance) + Vector3.new(0, -1.6, 0)
-	local delta = target - self.Ball.Position
+
+	local direction = getControlDirection(player, root)
+	local targetY = math.max(1.6, root.Position.Y - 1.9)
+	local target = Vector3.new(
+		root.Position.X + (direction.X * GameConfig.Football.DribbleDistance),
+		targetY,
+		root.Position.Z + (direction.Z * GameConfig.Football.DribbleDistance)
+	)
+
+	local relative = self.Ball.Position - root.Position
+	local planarRelative = Vector3.new(relative.X, 0, relative.Z)
+	local isBehind = planarRelative.Magnitude > 0.1 and planarRelative.Unit:Dot(direction) < -0.05
+
+	-- If the player has run past the ball, recover it immediately to the front.
+	-- This prevents the prototype dribble from trailing behind the character.
+	if isBehind or distance > GameConfig.Football.DribbleCatchupDistance then
+		self.Ball.CFrame = CFrame.new(target)
+		self.Ball.AssemblyLinearVelocity = Vector3.new(root.AssemblyLinearVelocity.X, 0, root.AssemblyLinearVelocity.Z)
+		self.Ball.AssemblyAngularVelocity = Vector3.zero
+	else
+		local delta = target - self.Ball.Position
+		local velocity = Vector3.new(
+			(delta.X * GameConfig.Football.DribbleResponsiveness) + (root.AssemblyLinearVelocity.X * 0.45),
+			self.Ball.AssemblyLinearVelocity.Y,
+			(delta.Z * GameConfig.Football.DribbleResponsiveness) + (root.AssemblyLinearVelocity.Z * 0.45)
+		)
+		local flatVelocity = Vector3.new(velocity.X, 0, velocity.Z)
+		if flatVelocity.Magnitude > GameConfig.Football.DribbleMaxSpeed then
+			flatVelocity = flatVelocity.Unit * GameConfig.Football.DribbleMaxSpeed
+			velocity = Vector3.new(flatVelocity.X, velocity.Y, flatVelocity.Z)
+		end
+		self.Ball.AssemblyLinearVelocity = velocity
+	end
+
 	self.Ball:SetAttribute("LastTouchUserId", player.UserId)
-	self.Ball.AssemblyLinearVelocity = Vector3.new(delta.X * 8, self.Ball.AssemblyLinearVelocity.Y, delta.Z * 8)
 end
 
 function BallService:Init(ball, actionRemote)

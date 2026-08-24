@@ -43,6 +43,31 @@ local function createGoal(model, name, z, goalFor)
 	return trigger
 end
 
+local function createBoundaries(model)
+	local width = GameConfig.Prototype.PitchWidth
+	local length = GameConfig.Prototype.PitchLength
+	local padding = GameConfig.Prototype.BoundaryPadding
+	local height = GameConfig.Prototype.BoundaryHeight
+	local thickness = GameConfig.Prototype.BoundaryThickness
+	local transparency = GameConfig.Prototype.BoundaryTransparency
+	local halfWidth = width / 2
+	local halfLength = length / 2
+	local wallY = 0.5 + (height / 2)
+	local wallColor = Color3.fromRGB(25, 70, 45)
+
+	local boundary = Instance.new("Model")
+	boundary.Name = "PrototypeBoundary"
+	boundary.Parent = model
+
+	local sideLength = length + ((padding + thickness) * 2)
+	local endWidth = width + ((padding + thickness) * 2)
+
+	makePart(boundary, "WestWall", Vector3.new(thickness, height, sideLength), Vector3.new(-(halfWidth + padding), wallY, 0), wallColor, transparency, true)
+	makePart(boundary, "EastWall", Vector3.new(thickness, height, sideLength), Vector3.new(halfWidth + padding, wallY, 0), wallColor, transparency, true)
+	makePart(boundary, "NorthWall", Vector3.new(endWidth, height, thickness), Vector3.new(0, wallY, halfLength + padding), wallColor, transparency, true)
+	makePart(boundary, "SouthWall", Vector3.new(endWidth, height, thickness), Vector3.new(0, wallY, -(halfLength + padding)), wallColor, transparency, true)
+end
+
 function WorldBuilder:Init()
 	local old = Workspace:FindFirstChild("RoadToGloryPrototype")
 	if old then
@@ -67,6 +92,7 @@ function WorldBuilder:Init()
 	local halfLength = GameConfig.Prototype.PitchLength / 2
 	createGoal(model, "NorthGoal", halfLength - 2, "Home")
 	createGoal(model, "SouthGoal", -halfLength + 2, "Away")
+	createBoundaries(model)
 
 	local spawn = Instance.new("SpawnLocation")
 	spawn.Name = "CareerSpawn"

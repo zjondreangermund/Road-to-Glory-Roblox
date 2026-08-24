@@ -6,18 +6,36 @@ local FootballController = {
 	Dribbling = false,
 }
 
-local function getKickDirection()
-	local camera = workspace.CurrentCamera
-	if camera then
-		local look = camera.CFrame.LookVector
-		local flat = Vector3.new(look.X, 0, look.Z)
-		if flat.Magnitude > 0.01 then
-			return flat.Unit
-		end
+local function flatUnit(vector)
+	local flat = Vector3.new(vector.X, 0, vector.Z)
+	if flat.Magnitude < 0.01 then
+		return nil
 	end
+	return flat.Unit
+end
+
+local function getKickDirection()
 	local character = Players.LocalPlayer.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
-	return root and root.CFrame.LookVector or Vector3.new(0, 0, -1)
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+
+	-- Aim from the footballer's movement/facing direction, not the camera.
+	-- This makes WASD / the mobile thumbstick control shot and pass direction.
+	if humanoid then
+		local moveDirection = flatUnit(humanoid.MoveDirection)
+		if moveDirection then
+			return moveDirection
+		end
+	end
+
+	if root then
+		local facingDirection = flatUnit(root.CFrame.LookVector)
+		if facingDirection then
+			return facingDirection
+		end
+	end
+
+	return Vector3.new(0, 0, -1)
 end
 
 function FootballController:BindAction(name, title, keyCode, position, callback)
