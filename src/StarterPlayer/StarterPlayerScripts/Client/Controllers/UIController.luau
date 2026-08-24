@@ -26,12 +26,13 @@ function UIController:Refresh()
 	self.Score.Text = string.format("HOME %d  -  %d AWAY", player:GetAttribute("HomeScore") or 0, player:GetAttribute("AwayScore") or 0)
 	self.Clock.Text = formatTime(player:GetAttribute("MatchTime"))
 	self.Rating.Text = string.format("MANAGER RATING  %.1f", player:GetAttribute("ManagerRating") or 6.0)
+	self.Cash.Text = string.format("CASH  N$%d", player:GetAttribute("CareerMoney") or 0)
 	self.Story.Text = string.format("%s\n%s", player:GetAttribute("StorySpeaker") or "Coach", player:GetAttribute("StoryText") or "Welcome to Road to Glory")
 
 	local location = player:GetAttribute("ExplorationLocation") or "Academy Entrance"
 	local explored = player:GetAttribute("ExplorationCount") or 0
 	local total = player:GetAttribute("ExplorationTotal") or 0
-	self.Exploration.Text = string.format("ACADEMY CAMPUS  •  %s  •  %d/%d EXPLORED", location, explored, total)
+	self.Exploration.Text = string.format("CAREER WORLD  •  %s  •  %d/%d EXPLORED", location, explored, total)
 
 	local stage = player:GetAttribute("TrainingStage") or "ACADEMY TRAINING"
 	local instruction = player:GetAttribute("TrainingInstruction") or "Press T to begin."
@@ -58,7 +59,8 @@ function UIController:Init()
 	self.Score = makeLabel(gui, "Score", UDim2.fromOffset(260, 42), UDim2.new(0.5, -130, 0, 18), 18)
 	self.Clock = makeLabel(gui, "Clock", UDim2.fromOffset(100, 34), UDim2.new(0.5, -50, 0, 64), 16)
 	self.Rating = makeLabel(gui, "Rating", UDim2.fromOffset(210, 40), UDim2.new(0, 18, 0, 18), 16)
-	self.Exploration = makeLabel(gui, "Exploration", UDim2.fromOffset(430, 34), UDim2.new(0, 18, 0, 66), 13)
+	self.Cash = makeLabel(gui, "Cash", UDim2.fromOffset(145, 40), UDim2.new(0, 238, 0, 18), 15)
+	self.Exploration = makeLabel(gui, "Exploration", UDim2.fromOffset(470, 34), UDim2.new(0, 18, 0, 66), 13)
 	self.Exploration.TextXAlignment = Enum.TextXAlignment.Left
 	self.Story = makeLabel(gui, "Story", UDim2.new(0.6, 0, 0, 92), UDim2.new(0.2, 0, 1, -120), 15)
 	self.Story.TextWrapped = true
@@ -73,7 +75,7 @@ function UIController:Init()
 	self.Scout.Visible = false
 
 	for _, attribute in ipairs({
-		"HomeScore", "AwayScore", "MatchTime", "ManagerRating", "StorySpeaker", "StoryText",
+		"HomeScore", "AwayScore", "MatchTime", "ManagerRating", "CareerMoney", "CurrentHome", "StorySpeaker", "StoryText",
 		"TrainingStage", "TrainingInstruction", "TrainingProgress", "TrainingScore",
 		"ScoutReport", "ScoutGrade", "ScoutOverall", "ExplorationLocation", "ExplorationCount", "ExplorationTotal",
 	}) do
