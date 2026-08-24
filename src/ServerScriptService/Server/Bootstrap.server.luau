@@ -4,6 +4,7 @@ local servicesFolder = script.Parent.Services
 local WorldBuilder = require(servicesFolder.WorldBuilder)
 local WorldMapV5Service = require(servicesFolder.WorldMapV5Service)
 local WorldMapV5PolishService = require(servicesFolder.WorldMapV5PolishService)
+local WorldCompletionV6Service = require(servicesFolder.WorldCompletionV6Service)
 local CareerNPCPopulationV5Service = require(servicesFolder.CareerNPCPopulationV5Service)
 local AvatarNPCV5Service = require(servicesFolder.AvatarNPCV5Service)
 local VehicleServiceV5 = require(servicesFolder.VehicleServiceV5)
@@ -41,13 +42,15 @@ local function safeInit(label, callback)
 	return ok
 end
 
--- V5 uses one coordinate plan rather than stacking the old V2/V3/V4 runtime worlds.
+-- World-first build: create the stable V5 layout, then apply the V6 completion/detail layer
+-- before NPCs, property prompts, exploration and gameplay scan the map.
 safeInit("WorldBuilder", function() WorldBuilder:Init() end)
 safeInit("WorldMapV5", function() WorldMapV5Service:Init(WorldBuilder) end)
 safeInit("WorldMapV5Polish", function() WorldMapV5PolishService:Init(WorldBuilder) end)
+safeInit("WorldCompletionV6", function() WorldCompletionV6Service:Init(WorldBuilder) end)
 safeInit("CareerNPCPopulationV5", function() CareerNPCPopulationV5Service:Init(WorldBuilder) end)
 
--- Career/gameplay services still initialize independently if a visual subsystem has a problem.
+-- Existing gameplay remains available for testing, but no new story chapter work is added during the world-completion phase.
 safeInit("PlayerData", function() PlayerDataService:Init() end)
 safeInit("Property", function() PropertyService:Init(WorldBuilder, PlayerDataService) end)
 safeInit("Rating", function() RatingService:Init() end)
@@ -63,7 +66,7 @@ safeInit("AvatarNPCs", function() AvatarNPCV5Service:Init(WorldBuilder) end)
 safeInit("AI", function() AIService:Init() end)
 
 if #startupFailures == 0 then
-	print("Road to Glory V0.5.1 playable childhood practice + persistent story initialized")
+	print("Road to Glory V0.6 world-completion build initialized")
 else
-	warn("Road to Glory V0.5.1 initialized with recoverable failures: " .. table.concat(startupFailures, ", "))
+	warn("Road to Glory V0.6 initialized with recoverable failures: " .. table.concat(startupFailures, ", "))
 end
