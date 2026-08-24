@@ -2,6 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local servicesFolder = script.Parent.Services
 local WorldBuilder = require(servicesFolder.WorldBuilder)
+local EnvironmentExpansionService = require(servicesFolder.EnvironmentExpansionService)
 local PlayerDataService = require(servicesFolder.PlayerDataService)
 local RatingService = require(servicesFolder.RatingService)
 local BallService = require(servicesFolder.BallService)
@@ -24,6 +25,8 @@ trainingAction.Name = "TrainingAction"
 trainingAction.Parent = remotes
 
 WorldBuilder:Init()
+-- Expand the base academy before services scan goals/exploration nodes.
+EnvironmentExpansionService:Init(WorldBuilder)
 PlayerDataService:Init()
 RatingService:Init()
 BallService:Init(WorldBuilder.Ball, footballAction)
@@ -33,4 +36,4 @@ AIService:Init()
 TrainingService:Init(WorldBuilder, BallService, trainingAction, footballAction)
 ExplorationService:Init(WorldBuilder)
 
-print("Road to Glory V0.2 scenic academy build initialized")
+print("Road to Glory V0.2 academy + first stadium world initialized")
