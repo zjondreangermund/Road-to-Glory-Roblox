@@ -1,6 +1,6 @@
 # Road to Glory Roadmap
 
-## V0.1 - Playable football foundation
+## V0.1 - Playable football foundation ✅
 - Prototype pitch and goals generated from code
 - Server-authoritative football actions
 - Shoot, pass and dribble controls
@@ -10,12 +10,16 @@
 - Original story framework for the Academy Trial
 - PC and mobile input foundation
 
-## V0.2 - Academy training
-- Sprint drill
-- Shooting drill
-- Passing drill
-- Dribbling drill
-- Drill scoring and scout report
+## V0.2 - Academy training ✅
+- Sprint drill with timed score
+- Shooting drill with 3 targets and attempt-based score
+- Passing drill with 3 gates and attempt-based score
+- Dribbling course with ordered gates and timed score
+- Live training HUD
+- Four-drill average score
+- Scout grade and scout report
+- Training mode prevents normal match goal resets
+- Close-control dribbling keeps the ball in front of the player
 
 ## V0.3 - Player creator and progression
 - Name, nationality and shirt identity
