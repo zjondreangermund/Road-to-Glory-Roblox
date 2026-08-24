@@ -38,6 +38,12 @@ function MatchService:StartMatch(resetBall)
 	self:Broadcast()
 end
 
+function MatchService:StopMatch()
+	self.Active = false
+	self.TimeLeft = 0
+	self:Broadcast()
+end
+
 function MatchService:AwardGoal(goalFor)
 	if self.GoalLock or not self.Active then return end
 	if self.Ball:GetAttribute("TrainingMode") then return end
@@ -54,7 +60,7 @@ function MatchService:AwardGoal(goalFor)
 	self:Broadcast()
 
 	task.delay(GameConfig.Match.ResetDelaySeconds, function()
-		if not self.Ball:GetAttribute("TrainingMode") then
+		if self.Active and not self.Ball:GetAttribute("TrainingMode") then
 			self.WorldBuilder:ResetBall()
 		end
 		self.GoalLock = false
@@ -84,7 +90,15 @@ function MatchService:Init(worldBuilder, ratingService)
 		end)
 	end)
 
-	self:StartMatch(true)
+	-- Career mode begins in exploration/story state. Do NOT auto-start the old
+	-- prototype match here: it used to reset the shared football while the player
+	-- was at home, on the childhood pitch, or travelling to the academy.
+	self.HomeScore = 0
+	self.AwayScore = 0
+	self.TimeLeft = 0
+	self.Active = false
+	self:Broadcast()
+
 	task.spawn(function()
 		while true do
 			task.wait(1)
@@ -92,11 +106,8 @@ function MatchService:Init(worldBuilder, ratingService)
 				self.TimeLeft = math.max(self.TimeLeft - 1, 0)
 				if self.TimeLeft == 0 then
 					self.Active = false
-					if GameConfig.Match.AutoRestart then
-						task.delay(5, function() self:StartMatch(false) end)
-					end
+					self:Broadcast()
 				end
-				self:Broadcast()
 			end
 		end
 	end)
