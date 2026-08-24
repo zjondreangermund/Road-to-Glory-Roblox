@@ -12,6 +12,7 @@ local PropertyService = require(servicesFolder.PropertyService)
 local RatingService = require(servicesFolder.RatingService)
 local BallService = require(servicesFolder.BallService)
 local MatchService = require(servicesFolder.MatchService)
+local ChildhoodPracticeService = require(servicesFolder.ChildhoodPracticeService)
 local StoryService = require(servicesFolder.StoryService)
 local AIService = require(servicesFolder.AIService)
 local TrainingService = require(servicesFolder.TrainingService)
@@ -52,8 +53,9 @@ safeInit("Property", function() PropertyService:Init(WorldBuilder, PlayerDataSer
 safeInit("Rating", function() RatingService:Init() end)
 safeInit("Ball", function() BallService:Init(WorldBuilder.Ball, footballAction) end)
 safeInit("Match", function() MatchService:Init(WorldBuilder, RatingService) end)
+safeInit("ChildhoodPractice", function() ChildhoodPracticeService:Init(WorldBuilder, BallService) end)
 safeInit("Training", function() TrainingService:Init(WorldBuilder, BallService, trainingAction, footballAction) end)
-safeInit("Story", function() StoryService:Init(WorldBuilder) end)
+safeInit("Story", function() StoryService:Init(WorldBuilder, PlayerDataService, ChildhoodPracticeService) end)
 safeInit("TrialMatch", function() TrialMatchService:Init(WorldBuilder, BallService, RatingService, MatchService, PlayerDataService) end)
 safeInit("Exploration", function() ExplorationService:Init(WorldBuilder) end)
 safeInit("Vehicles", function() VehicleServiceV5:Init(WorldBuilder) end)
@@ -61,7 +63,7 @@ safeInit("AvatarNPCs", function() AvatarNPCV5Service:Init(WorldBuilder) end)
 safeInit("AI", function() AIService:Init() end)
 
 if #startupFailures == 0 then
-	print("Road to Glory V0.5 unified career world + vehicles + avatar NPCs initialized")
+	print("Road to Glory V0.5.1 playable childhood practice + persistent story initialized")
 else
-	warn("Road to Glory V0.5 initialized with recoverable failures: " .. table.concat(startupFailures, ", "))
+	warn("Road to Glory V0.5.1 initialized with recoverable failures: " .. table.concat(startupFailures, ", "))
 end
