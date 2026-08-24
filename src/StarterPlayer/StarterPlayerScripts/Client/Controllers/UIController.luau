@@ -56,12 +56,12 @@ function UIController:Init()
 	self.Story = makeLabel(gui, "Story", UDim2.new(0.6, 0, 0, 92), UDim2.new(0.2, 0, 1, -120), 15)
 	self.Story.TextWrapped = true
 
-	self.Training = makeLabel(gui, "Training", UDim2.fromOffset(360, 116), UDim2.new(1, -380, 0, 105), 14)
+	self.Training = makeLabel(gui, "Training", UDim2.fromOffset(390, 126), UDim2.new(1, -410, 0, 105), 14)
 	self.Training.TextWrapped = true
 	self.Training.TextXAlignment = Enum.TextXAlignment.Left
 	self.Training.TextYAlignment = Enum.TextYAlignment.Center
 
-	self.Scout = makeLabel(gui, "Scout", UDim2.new(0.7, 0, 0, 72), UDim2.new(0.15, 0, 0, 112), 15)
+	self.Scout = makeLabel(gui, "Scout", UDim2.new(0.82, 0, 0, 84), UDim2.new(0.09, 0, 0, 112), 14)
 	self.Scout.TextWrapped = true
 	self.Scout.Visible = false
 
