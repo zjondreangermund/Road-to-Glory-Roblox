@@ -45,7 +45,11 @@ local function addCareerVest(model, accent, styleName)
 	vest.CanQuery = false
 	vest.Material = Enum.Material.SmoothPlastic
 	vest.Color = accent
-	vest.Transparency = styleName == "Family" or styleName == "Resident" and 0.72 or 0.18
+	if styleName == "Family" or styleName == "Resident" then
+		vest.Transparency = 0.72
+	else
+		vest.Transparency = 0.18
+	end
 	vest.Size = Vector3.new(torso.Size.X + 0.12, torso.Size.Y * 0.62, torso.Size.Z + 0.15)
 	vest.CFrame = torso.CFrame * CFrame.new(0, -torso.Size.Y * 0.06, -0.03)
 	vest.Parent = model
@@ -141,8 +145,6 @@ function AvatarNPCV5Service:BuildForPlayer(player)
 					desc.DepthScale = math.clamp(desc.DepthScale or 1, 0.92, 1.04)
 					desc.BodyTypeScale = math.clamp(desc.BodyTypeScale or 0, 0, 0.8)
 					desc.ProportionScale = math.clamp(desc.ProportionScale or 0, 0, 0.8)
-					-- Keep the player's hair/face style so NPCs belong visually in the same Roblox world,
-					-- but remove large accessories that make staff/family look like exact duplicates.
 					desc.BackAccessory = ""
 					desc.FrontAccessory = ""
 					desc.WaistAccessory = ""
