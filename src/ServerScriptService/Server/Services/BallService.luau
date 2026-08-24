@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
 local GameConfig = require(ReplicatedStorage.Shared.GameConfig)
 
@@ -26,6 +27,59 @@ local function getControlDirection(player, root)
 		end
 	end
 	return flatUnit(root.CFrame.LookVector)
+end
+
+local function getAcademyShootingTarget(ballPosition, kickDirection)
+	local prototype = Workspace:FindFirstChild("RoadToGloryPrototype")
+	local training = prototype and prototype:FindFirstChild("AcademyTraining")
+	if not training then
+		return nil
+	end
+
+	local bestTarget = nil
+	local bestAlignment = -1
+	for _, target in ipairs(training:GetChildren()) do
+		if target:IsA("BasePart") and string.match(target.Name, "^ShootingTarget%d+$") then
+			local delta = target.Position - ballPosition
+			local horizontal = Vector3.new(delta.X, 0, delta.Z)
+			if horizontal.Magnitude > 0.1 then
+				local alignment = horizontal.Unit:Dot(kickDirection)
+				if alignment > bestAlignment then
+					bestAlignment = alignment
+					bestTarget = target
+				end
+			end
+		end
+	end
+
+	-- Only add target assistance when the player is genuinely aiming toward a target.
+	if bestAlignment < 0.72 then
+		return nil
+	end
+	return bestTarget
+end
+
+local function getAcademyShotVelocity(ballPosition, kickDirection, horizontalPower)
+	local target = getAcademyShootingTarget(ballPosition, kickDirection)
+	if not target then
+		return nil
+	end
+
+	local delta = target.Position - ballPosition
+	local horizontalDelta = Vector3.new(delta.X, 0, delta.Z)
+	local horizontalDistance = horizontalDelta.Magnitude
+	if horizontalDistance < 0.1 then
+		return nil
+	end
+
+	local horizontalDirection = horizontalDelta.Unit
+	local travelTime = horizontalDistance / math.max(horizontalPower, 1)
+	local verticalDelta = delta.Y
+	local verticalVelocity = (verticalDelta + (0.5 * Workspace.Gravity * travelTime * travelTime)) / travelTime
+
+	-- Keep the training arc playable even if Roblox physics/timing varies slightly.
+	verticalVelocity = math.clamp(verticalVelocity, GameConfig.Football.ShootLift, 85)
+	return (horizontalDirection * horizontalPower) + Vector3.new(0, verticalVelocity, 0)
 end
 
 function BallService:GetRoot(player)
@@ -61,7 +115,13 @@ function BallService:Kick(player, direction, power, lift, actionName)
 	pcall(function()
 		self.Ball:SetNetworkOwner(nil)
 	end)
-	self.Ball.AssemblyLinearVelocity = (kickDirection * power) + Vector3.new(0, lift, 0)
+
+	local velocity = nil
+	if actionName == "Shoot" and self.Ball:GetAttribute("TrainingMode") == true then
+		velocity = getAcademyShotVelocity(self.Ball.Position, kickDirection, power)
+	end
+
+	self.Ball.AssemblyLinearVelocity = velocity or ((kickDirection * power) + Vector3.new(0, lift, 0))
 end
 
 function BallService:SetDribbling(player, enabled)
