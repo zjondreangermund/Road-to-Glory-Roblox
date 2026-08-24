@@ -6,6 +6,7 @@ local EnvironmentExpansionService = require(servicesFolder.EnvironmentExpansionS
 local CareerWorldV2Service = require(servicesFolder.CareerWorldV2Service)
 local CareerWorldPolishService = require(servicesFolder.CareerWorldPolishService)
 local WorldLayoutV3Service = require(servicesFolder.WorldLayoutV3Service)
+local ChildhoodPitchGoalFixService = require(servicesFolder.ChildhoodPitchGoalFixService)
 local PlayerDataService = require(servicesFolder.PlayerDataService)
 local PropertyService = require(servicesFolder.PropertyService)
 local RatingService = require(servicesFolder.RatingService)
@@ -35,6 +36,7 @@ EnvironmentExpansionService:Init(WorldBuilder)
 CareerWorldV2Service:Init(WorldBuilder)
 CareerWorldPolishService:Init(WorldBuilder)
 WorldLayoutV3Service:Init(WorldBuilder)
+ChildhoodPitchGoalFixService:Init(WorldBuilder)
 
 PlayerDataService:Init()
 PropertyService:Init(WorldBuilder, PlayerDataService)
@@ -47,4 +49,4 @@ TrialMatchService:Init(WorldBuilder, BallService, RatingService, MatchService, P
 AIService:Init()
 ExplorationService:Init(WorldBuilder)
 
-print("Road to Glory V0.3 childhood opening + trial match initialized")
+print("Road to Glory V0.3.1 childhood goals restored + story trial initialized")
