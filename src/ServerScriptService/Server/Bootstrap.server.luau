@@ -8,6 +8,7 @@ local BallService = require(servicesFolder.BallService)
 local MatchService = require(servicesFolder.MatchService)
 local StoryService = require(servicesFolder.StoryService)
 local AIService = require(servicesFolder.AIService)
+local TrainingService = require(servicesFolder.TrainingService)
 
 local remotes = ReplicatedStorage:FindFirstChild("RoadToGloryRemotes") or Instance.new("Folder")
 remotes.Name = "RoadToGloryRemotes"
@@ -17,6 +18,10 @@ local footballAction = remotes:FindFirstChild("FootballAction") or Instance.new(
 footballAction.Name = "FootballAction"
 footballAction.Parent = remotes
 
+local trainingAction = remotes:FindFirstChild("TrainingAction") or Instance.new("RemoteEvent")
+trainingAction.Name = "TrainingAction"
+trainingAction.Parent = remotes
+
 WorldBuilder:Init()
 PlayerDataService:Init()
 RatingService:Init()
@@ -24,5 +29,6 @@ BallService:Init(WorldBuilder.Ball, footballAction)
 MatchService:Init(WorldBuilder, RatingService)
 StoryService:Init()
 AIService:Init()
+TrainingService:Init(WorldBuilder, BallService, trainingAction, footballAction)
 
-print("Road to Glory V0.1 server initialized")
+print("Road to Glory V0.2 server initialized")
