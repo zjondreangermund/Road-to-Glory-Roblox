@@ -13,13 +13,22 @@
 5. Sync the project into Studio.
 6. Press Play.
 
-V0.1 creates its own prototype pitch, two goal triggers and football at runtime, so a custom map is not required yet.
+The current build creates the prototype pitch, boundaries, goals, football and Academy Training course at runtime.
 
 ## Controls
 - E: Shoot
 - Q: Pass
 - F: Toggle dribble
-- Mobile: SHOOT, PASS and DRIBBLE touch buttons are created automatically.
+- T: Start/restart Academy Training
+- Mobile: SHOOT, PASS, DRIBBLE and TRAINING touch buttons are created automatically.
 
-## Current prototype rule
-The player's facing/camera direction determines the kick direction. The server validates kick distance and owns the football physics.
+## Academy Training V0.2
+Press T to begin the four-drill assessment:
+1. Sprint through the yellow start/finish markers.
+2. Hit all three red shooting targets.
+3. Pass through all three blue passing gates.
+4. Dribble through the orange gates in order.
+
+A live training score is shown during the assessment. Finishing all four drills generates a Scout Report and overall grade.
+
+During training, normal match goal resets are suppressed so drill attempts are not interrupted.
