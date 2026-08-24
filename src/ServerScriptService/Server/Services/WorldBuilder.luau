@@ -81,21 +81,48 @@ local function createTrainingCourse(model)
 	local refs = {}
 
 	local yellow = Color3.fromRGB(255, 205, 40)
-	refs.SprintSpawn = makePart(training, "SprintSpawn", Vector3.new(4, 0.3, 4), Vector3.new(-38, 0.7, -74), yellow, 0.55, false)
-	refs.SprintStart = makePart(training, "SprintStart", Vector3.new(14, 3, 2), Vector3.new(-38, 2, -64), yellow, 0.45, false)
-	refs.SprintFinish = makePart(training, "SprintFinish", Vector3.new(14, 3, 2), Vector3.new(-38, 2, -18), yellow, 0.45, false)
+	refs.SprintSpawn = makePart(training, "SprintSpawn", Vector3.new(4, 0.3, 4), Vector3.new(-40, 0.7, -76), yellow, 0.55, false)
+	refs.SprintStart = makePart(training, "SprintStart", Vector3.new(14, 3, 2), Vector3.new(-40, 2, -66), yellow, 0.45, false)
+	refs.SprintFinish = makePart(training, "SprintFinish", Vector3.new(14, 3, 2), Vector3.new(-40, 2, -22), yellow, 0.45, false)
 	refs.SprintStart.CanTouch = true
 	refs.SprintFinish.CanTouch = true
 	addLabel(refs.SprintStart, "SPRINT START")
-	addLabel(refs.SprintFinish, "FINISH")
+	addLabel(refs.SprintFinish, "SPRINT FINISH")
+
+	local purple = Color3.fromRGB(145, 80, 220)
+	refs.AgilitySpawn = makePart(training, "AgilitySpawn", Vector3.new(4, 0.3, 4), Vector3.new(36, 0.7, -74), purple, 0.55, false)
+	refs.AgilityCheckpoints = {}
+	local agilityPositions = {
+		Vector3.new(36, 2.5, -64),
+		Vector3.new(22, 2.5, -54),
+		Vector3.new(42, 2.5, -44),
+		Vector3.new(20, 2.5, -34),
+		Vector3.new(42, 2.5, -24),
+		Vector3.new(24, 2.5, -14),
+		Vector3.new(40, 2.5, -4),
+		Vector3.new(28, 2.5, 6),
+	}
+	for index, position in ipairs(agilityPositions) do
+		local checkpoint = makePart(training, "AgilityCheckpoint" .. index, Vector3.new(8, 5, 2), position, purple, 0.58, false)
+		checkpoint.CanTouch = true
+		checkpoint:SetAttribute("TrainingIndex", index)
+		addLabel(checkpoint, "AGILITY " .. index)
+		table.insert(refs.AgilityCheckpoints, checkpoint)
+	end
 
 	refs.ShootingPlayerSpot = makePart(training, "ShootingPlayerSpot", Vector3.new(5, 0.3, 5), Vector3.new(0, 0.7, 35), Color3.fromRGB(220, 65, 65), 0.55, false)
 	refs.ShootingBallSpot = makePart(training, "ShootingBallSpot", Vector3.new(2, 0.2, 2), Vector3.new(0, 1.6, 42), Color3.fromRGB(220, 65, 65), 1, false)
 	refs.ShootingTargetLook = makePart(training, "ShootingTargetLook", Vector3.new(1, 1, 1), Vector3.new(0, 5, 86), Color3.new(1, 1, 1), 1, false)
 	refs.ShootingTargets = {}
-	local targetPositions = { Vector3.new(-9, 4, 86.5), Vector3.new(0, 7, 86.5), Vector3.new(9, 4, 86.5) }
+	local targetPositions = {
+		Vector3.new(-10, 3.5, 86.5),
+		Vector3.new(-5, 7.2, 86.5),
+		Vector3.new(0, 5.2, 86.5),
+		Vector3.new(5, 7.2, 86.5),
+		Vector3.new(10, 3.5, 86.5),
+	}
 	for index, position in ipairs(targetPositions) do
-		local target = makePart(training, "ShootingTarget" .. index, Vector3.new(6, 6, 1), position, Color3.fromRGB(220, 55, 55), 0.2, false)
+		local target = makePart(training, "ShootingTarget" .. index, Vector3.new(5, 5, 1), position, Color3.fromRGB(220, 55, 55), 0.2, false)
 		target.CanTouch = true
 		target:SetAttribute("TrainingIndex", index)
 		addLabel(target, "SHOOT " .. index)
@@ -106,23 +133,31 @@ local function createTrainingCourse(model)
 	refs.PassingBallSpot = makePart(training, "PassingBallSpot", Vector3.new(2, 0.2, 2), Vector3.new(0, 1.6, -23), Color3.fromRGB(55, 130, 235), 1, false)
 	refs.PassingTargetLook = makePart(training, "PassingTargetLook", Vector3.new(1, 1, 1), Vector3.new(0, 2, 18), Color3.new(1, 1, 1), 1, false)
 	refs.PassingTargets = {}
-	for index, x in ipairs({ -28, 0, 28 }) do
-		local target = makePart(training, "PassingTarget" .. index, Vector3.new(9, 6, 1), Vector3.new(x, 3.5, 18), Color3.fromRGB(55, 130, 235), 0.35, false)
+	for index, x in ipairs({ -32, -16, 0, 16, 32 }) do
+		local target = makePart(training, "PassingTarget" .. index, Vector3.new(8, 6, 1), Vector3.new(x, 3.5, 18), Color3.fromRGB(55, 130, 235), 0.35, false)
 		target.CanTouch = true
 		target:SetAttribute("TrainingIndex", index)
 		addLabel(target, "PASS " .. index)
 		table.insert(refs.PassingTargets, target)
 	end
 
-	refs.DribblePlayerSpot = makePart(training, "DribblePlayerSpot", Vector3.new(5, 0.3, 5), Vector3.new(-18, 0.7, -48), Color3.fromRGB(255, 135, 35), 0.55, false)
-	refs.DribbleBallSpot = makePart(training, "DribbleBallSpot", Vector3.new(2, 0.2, 2), Vector3.new(-18, 1.6, -42), Color3.fromRGB(255, 135, 35), 1, false)
+	refs.DribblePlayerSpot = makePart(training, "DribblePlayerSpot", Vector3.new(5, 0.3, 5), Vector3.new(-18, 0.7, -50), Color3.fromRGB(255, 135, 35), 0.55, false)
+	refs.DribbleBallSpot = makePart(training, "DribbleBallSpot", Vector3.new(2, 0.2, 2), Vector3.new(-18, 1.6, -44), Color3.fromRGB(255, 135, 35), 1, false)
 	refs.DribbleGates = {}
 	local gatePositions = {
-		Vector3.new(-18, 2.5, -32), Vector3.new(18, 2.5, -14), Vector3.new(-18, 2.5, 4),
-		Vector3.new(18, 2.5, 22), Vector3.new(-18, 2.5, 40), Vector3.new(18, 2.5, 58),
+		Vector3.new(-18, 2.5, -36),
+		Vector3.new(4, 2.5, -27),
+		Vector3.new(-12, 2.5, -18),
+		Vector3.new(14, 2.5, -9),
+		Vector3.new(-8, 2.5, 0),
+		Vector3.new(18, 2.5, 9),
+		Vector3.new(-6, 2.5, 18),
+		Vector3.new(18, 2.5, 27),
+		Vector3.new(-4, 2.5, 36),
+		Vector3.new(16, 2.5, 48),
 	}
 	for index, position in ipairs(gatePositions) do
-		local gate = makePart(training, "DribbleGate" .. index, Vector3.new(10, 5, 2), position, Color3.fromRGB(255, 135, 35), 0.58, false)
+		local gate = makePart(training, "DribbleGate" .. index, Vector3.new(9, 5, 2), position, Color3.fromRGB(255, 135, 35), 0.58, false)
 		gate.CanTouch = true
 		gate:SetAttribute("TrainingIndex", index)
 		addLabel(gate, "GATE " .. index)
