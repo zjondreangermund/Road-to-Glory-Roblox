@@ -18,6 +18,23 @@ local function makePart(parent, name, size, position, color, transparency, canCo
 	return part
 end
 
+local function addLabel(part, text)
+	local gui = Instance.new("BillboardGui")
+	gui.Size = UDim2.fromOffset(160, 40)
+	gui.StudsOffset = Vector3.new(0, 4, 0)
+	gui.AlwaysOnTop = true
+	gui.Parent = part
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.Text = text
+	label.TextColor3 = Color3.new(1, 1, 1)
+	label.TextStrokeTransparency = 0.35
+	label.Font = Enum.Font.GothamBold
+	label.TextScaled = true
+	label.Parent = gui
+end
+
 local function createGoal(model, name, z, goalFor)
 	local width = GameConfig.Prototype.GoalWidth
 	local direction = z > 0 and 1 or -1
@@ -29,15 +46,7 @@ local function createGoal(model, name, z, goalFor)
 	makePart(goal, "RightPost", Vector3.new(1, 10, 1), Vector3.new(width / 2, 5, z), Color3.fromRGB(240, 240, 240), 0, true)
 	makePart(goal, "Crossbar", Vector3.new(width + 1, 1, 1), Vector3.new(0, 10, z), Color3.fromRGB(240, 240, 240), 0, true)
 
-	local trigger = makePart(
-		goal,
-		"GoalTrigger",
-		Vector3.new(width - 1, 9, 5),
-		Vector3.new(0, 4.5, z + (2.5 * direction)),
-		Color3.new(1, 1, 1),
-		1,
-		false
-	)
+	local trigger = makePart(goal, "GoalTrigger", Vector3.new(width - 1, 9, 5), Vector3.new(0, 4.5, z + (2.5 * direction)), Color3.new(1, 1, 1), 1, false)
 	trigger.CanTouch = true
 	trigger:SetAttribute("GoalFor", goalFor)
 	return trigger
@@ -54,45 +63,89 @@ local function createBoundaries(model)
 	local halfLength = length / 2
 	local wallY = 0.5 + (height / 2)
 	local wallColor = Color3.fromRGB(25, 70, 45)
-
 	local boundary = Instance.new("Model")
 	boundary.Name = "PrototypeBoundary"
 	boundary.Parent = model
-
 	local sideLength = length + ((padding + thickness) * 2)
 	local endWidth = width + ((padding + thickness) * 2)
-
 	makePart(boundary, "WestWall", Vector3.new(thickness, height, sideLength), Vector3.new(-(halfWidth + padding), wallY, 0), wallColor, transparency, true)
 	makePart(boundary, "EastWall", Vector3.new(thickness, height, sideLength), Vector3.new(halfWidth + padding, wallY, 0), wallColor, transparency, true)
 	makePart(boundary, "NorthWall", Vector3.new(endWidth, height, thickness), Vector3.new(0, wallY, halfLength + padding), wallColor, transparency, true)
 	makePart(boundary, "SouthWall", Vector3.new(endWidth, height, thickness), Vector3.new(0, wallY, -(halfLength + padding)), wallColor, transparency, true)
 end
 
-function WorldBuilder:Init()
-	local old = Workspace:FindFirstChild("RoadToGloryPrototype")
-	if old then
-		old:Destroy()
+local function createTrainingCourse(model)
+	local training = Instance.new("Model")
+	training.Name = "AcademyTraining"
+	training.Parent = model
+	local refs = {}
+
+	local yellow = Color3.fromRGB(255, 205, 40)
+	refs.SprintSpawn = makePart(training, "SprintSpawn", Vector3.new(4, 0.3, 4), Vector3.new(-38, 0.7, -74), yellow, 0.55, false)
+	refs.SprintStart = makePart(training, "SprintStart", Vector3.new(14, 3, 2), Vector3.new(-38, 2, -64), yellow, 0.45, false)
+	refs.SprintFinish = makePart(training, "SprintFinish", Vector3.new(14, 3, 2), Vector3.new(-38, 2, -18), yellow, 0.45, false)
+	refs.SprintStart.CanTouch = true
+	refs.SprintFinish.CanTouch = true
+	addLabel(refs.SprintStart, "SPRINT START")
+	addLabel(refs.SprintFinish, "FINISH")
+
+	refs.ShootingPlayerSpot = makePart(training, "ShootingPlayerSpot", Vector3.new(5, 0.3, 5), Vector3.new(0, 0.7, 35), Color3.fromRGB(220, 65, 65), 0.55, false)
+	refs.ShootingBallSpot = makePart(training, "ShootingBallSpot", Vector3.new(2, 0.2, 2), Vector3.new(0, 1.6, 42), Color3.fromRGB(220, 65, 65), 1, false)
+	refs.ShootingTargetLook = makePart(training, "ShootingTargetLook", Vector3.new(1, 1, 1), Vector3.new(0, 5, 86), Color3.new(1, 1, 1), 1, false)
+	refs.ShootingTargets = {}
+	local targetPositions = { Vector3.new(-9, 4, 86.5), Vector3.new(0, 7, 86.5), Vector3.new(9, 4, 86.5) }
+	for index, position in ipairs(targetPositions) do
+		local target = makePart(training, "ShootingTarget" .. index, Vector3.new(6, 6, 1), position, Color3.fromRGB(220, 55, 55), 0.2, false)
+		target.CanTouch = true
+		target:SetAttribute("TrainingIndex", index)
+		addLabel(target, "SHOOT " .. index)
+		table.insert(refs.ShootingTargets, target)
 	end
 
+	refs.PassingPlayerSpot = makePart(training, "PassingPlayerSpot", Vector3.new(5, 0.3, 5), Vector3.new(0, 0.7, -30), Color3.fromRGB(55, 130, 235), 0.55, false)
+	refs.PassingBallSpot = makePart(training, "PassingBallSpot", Vector3.new(2, 0.2, 2), Vector3.new(0, 1.6, -23), Color3.fromRGB(55, 130, 235), 1, false)
+	refs.PassingTargetLook = makePart(training, "PassingTargetLook", Vector3.new(1, 1, 1), Vector3.new(0, 2, 18), Color3.new(1, 1, 1), 1, false)
+	refs.PassingTargets = {}
+	for index, x in ipairs({ -28, 0, 28 }) do
+		local target = makePart(training, "PassingTarget" .. index, Vector3.new(9, 6, 1), Vector3.new(x, 3.5, 18), Color3.fromRGB(55, 130, 235), 0.35, false)
+		target.CanTouch = true
+		target:SetAttribute("TrainingIndex", index)
+		addLabel(target, "PASS " .. index)
+		table.insert(refs.PassingTargets, target)
+	end
+
+	refs.DribblePlayerSpot = makePart(training, "DribblePlayerSpot", Vector3.new(5, 0.3, 5), Vector3.new(-18, 0.7, -48), Color3.fromRGB(255, 135, 35), 0.55, false)
+	refs.DribbleBallSpot = makePart(training, "DribbleBallSpot", Vector3.new(2, 0.2, 2), Vector3.new(-18, 1.6, -42), Color3.fromRGB(255, 135, 35), 1, false)
+	refs.DribbleGates = {}
+	local gatePositions = {
+		Vector3.new(-18, 2.5, -32), Vector3.new(18, 2.5, -14), Vector3.new(-18, 2.5, 4),
+		Vector3.new(18, 2.5, 22), Vector3.new(-18, 2.5, 40), Vector3.new(18, 2.5, 58),
+	}
+	for index, position in ipairs(gatePositions) do
+		local gate = makePart(training, "DribbleGate" .. index, Vector3.new(10, 5, 2), position, Color3.fromRGB(255, 135, 35), 0.58, false)
+		gate.CanTouch = true
+		gate:SetAttribute("TrainingIndex", index)
+		addLabel(gate, "GATE " .. index)
+		table.insert(refs.DribbleGates, gate)
+	end
+
+	return refs
+end
+
+function WorldBuilder:Init()
+	local old = Workspace:FindFirstChild("RoadToGloryPrototype")
+	if old then old:Destroy() end
 	local model = Instance.new("Model")
 	model.Name = "RoadToGloryPrototype"
 	model.Parent = Workspace
 
-	local pitch = makePart(
-		model,
-		"Pitch",
-		Vector3.new(GameConfig.Prototype.PitchWidth, 1, GameConfig.Prototype.PitchLength),
-		Vector3.new(0, 0, 0),
-		Color3.fromRGB(46, 125, 50),
-		0,
-		true
-	)
+	local pitch = makePart(model, "Pitch", Vector3.new(GameConfig.Prototype.PitchWidth, 1, GameConfig.Prototype.PitchLength), Vector3.new(0, 0, 0), Color3.fromRGB(46, 125, 50), 0, true)
 	pitch.Material = Enum.Material.Grass
-
 	local halfLength = GameConfig.Prototype.PitchLength / 2
 	createGoal(model, "NorthGoal", halfLength - 2, "Home")
 	createGoal(model, "SouthGoal", -halfLength + 2, "Away")
 	createBoundaries(model)
+	self.Training = createTrainingCourse(model)
 
 	local spawn = Instance.new("SpawnLocation")
 	spawn.Name = "CareerSpawn"
@@ -111,6 +164,8 @@ function WorldBuilder:Init()
 	ball.Material = Enum.Material.SmoothPlastic
 	ball.CustomPhysicalProperties = PhysicalProperties.new(0.7, 0.35, 0.55, 1, 1)
 	ball:SetAttribute("LastTouchUserId", 0)
+	ball:SetAttribute("TrainingMode", false)
+	ball:SetAttribute("TrainingOwnerUserId", 0)
 	ball.Parent = model
 
 	self.Model = model
@@ -118,17 +173,17 @@ function WorldBuilder:Init()
 	return model
 end
 
-function WorldBuilder:ResetBall()
-	if not self.Ball or not self.Ball.Parent then
-		return
-	end
+function WorldBuilder:SetBallPosition(position)
+	if not self.Ball or not self.Ball.Parent then return end
 	self.Ball.AssemblyLinearVelocity = Vector3.zero
 	self.Ball.AssemblyAngularVelocity = Vector3.zero
-	self.Ball.CFrame = CFrame.new(0, 3, 0)
+	self.Ball.CFrame = CFrame.new(position)
 	self.Ball:SetAttribute("LastTouchUserId", 0)
-	pcall(function()
-		self.Ball:SetNetworkOwner(nil)
-	end)
+	pcall(function() self.Ball:SetNetworkOwner(nil) end)
+end
+
+function WorldBuilder:ResetBall()
+	self:SetBallPosition(Vector3.new(0, 3, 0))
 end
 
 return WorldBuilder
