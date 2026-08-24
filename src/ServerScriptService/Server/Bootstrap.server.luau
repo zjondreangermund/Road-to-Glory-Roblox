@@ -6,7 +6,8 @@ local EnvironmentExpansionService = require(servicesFolder.EnvironmentExpansionS
 local CareerWorldV2Service = require(servicesFolder.CareerWorldV2Service)
 local CareerWorldPolishService = require(servicesFolder.CareerWorldPolishService)
 local WorldLayoutV3Service = require(servicesFolder.WorldLayoutV3Service)
-local ChildhoodPitchGoalFixService = require(servicesFolder.ChildhoodPitchGoalFixService)
+local WorldRealismV4Service = require(servicesFolder.WorldRealismV4Service)
+local ClubFacilitiesV4Service = require(servicesFolder.ClubFacilitiesV4Service)
 local PlayerDataService = require(servicesFolder.PlayerDataService)
 local PropertyService = require(servicesFolder.PropertyService)
 local RatingService = require(servicesFolder.RatingService)
@@ -31,13 +32,15 @@ trainingAction.Name = "TrainingAction"
 trainingAction.Parent = remotes
 
 WorldBuilder:Init()
--- Build the original academy/stadium, retain trophy polish, then replace the rural layout with the clean V3 district.
+-- Build legacy foundations first, then replace temporary world pieces with the final V4 road, neighbourhood and club layer.
 EnvironmentExpansionService:Init(WorldBuilder)
 CareerWorldV2Service:Init(WorldBuilder)
 CareerWorldPolishService:Init(WorldBuilder)
 WorldLayoutV3Service:Init(WorldBuilder)
-ChildhoodPitchGoalFixService:Init(WorldBuilder)
+WorldRealismV4Service:Init(WorldBuilder)
+ClubFacilitiesV4Service:Init(WorldBuilder)
 
+-- Scan gameplay only after the final map exists.
 PlayerDataService:Init()
 PropertyService:Init(WorldBuilder, PlayerDataService)
 RatingService:Init()
@@ -49,4 +52,4 @@ TrialMatchService:Init(WorldBuilder, BallService, RatingService, MatchService, P
 AIService:Init()
 ExplorationService:Init(WorldBuilder)
 
-print("Road to Glory V0.3.1 childhood goals restored + story trial initialized")
+print("Road to Glory V0.4 realistic career world + club facilities initialized")
