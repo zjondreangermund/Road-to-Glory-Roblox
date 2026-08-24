@@ -25,7 +25,11 @@ local GameConfig = {
 	},
 	Training = {
 		SprintGoldTime = 3.2,
-		DribbleGoldTime = 14,
+		AgilityGoldTime = 10.5,
+		DribbleGoldTime = 22,
+		ShootingTargetCount = 5,
+		PassingTargetCount = 5,
+		DribbleGateCount = 10,
 	},
 	Rating = {
 		Start = 6.0,
