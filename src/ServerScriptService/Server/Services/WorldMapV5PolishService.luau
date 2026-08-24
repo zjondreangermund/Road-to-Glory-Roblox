@@ -113,6 +113,9 @@ local function fixTownAndFacilities(worldBuilder)
 	if stadium then
 		local plaza = stadium:FindFirstChild("MatchdayPlaza")
 		if plaza then plaza.Position = Vector3.new(0, 0.2, -555); plaza.Size = Vector3.new(240, 0.35, 60) end
+		-- TrialMatchService expects MatchPitch as a direct stadium child.
+		local matchPitch = stadium:FindFirstChild("MatchPitch", true)
+		if matchPitch and matchPitch.Parent ~= stadium then matchPitch.Parent = stadium end
 	end
 
 	local kingsport = root:FindFirstChild("KingsportAthleticComplex")
