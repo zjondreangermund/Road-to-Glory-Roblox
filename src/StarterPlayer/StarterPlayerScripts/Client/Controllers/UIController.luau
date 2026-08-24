@@ -27,6 +27,20 @@ function UIController:Refresh()
 	self.Clock.Text = formatTime(player:GetAttribute("MatchTime"))
 	self.Rating.Text = string.format("MANAGER RATING  %.1f", player:GetAttribute("ManagerRating") or 6.0)
 	self.Story.Text = string.format("%s\n%s", player:GetAttribute("StorySpeaker") or "Coach", player:GetAttribute("StoryText") or "Welcome to Road to Glory")
+
+	local stage = player:GetAttribute("TrainingStage") or "ACADEMY TRAINING"
+	local instruction = player:GetAttribute("TrainingInstruction") or "Press T to begin."
+	local progress = player:GetAttribute("TrainingProgress") or ""
+	local score = player:GetAttribute("TrainingScore") or 0
+	self.Training.Text = string.format("%s\n%s\n%s\nCURRENT SCORE: %d", stage, instruction, progress, score)
+
+	local report = player:GetAttribute("ScoutReport") or ""
+	local grade = player:GetAttribute("ScoutGrade") or ""
+	local overall = player:GetAttribute("ScoutOverall") or 0
+	self.Scout.Visible = report ~= ""
+	if report ~= "" then
+		self.Scout.Text = string.format("SCOUT REPORT  •  %s  •  %d/100\n%s", grade, overall, report)
+	end
 end
 
 function UIController:Init()
@@ -42,7 +56,20 @@ function UIController:Init()
 	self.Story = makeLabel(gui, "Story", UDim2.new(0.6, 0, 0, 92), UDim2.new(0.2, 0, 1, -120), 15)
 	self.Story.TextWrapped = true
 
-	for _, attribute in ipairs({ "HomeScore", "AwayScore", "MatchTime", "ManagerRating", "StorySpeaker", "StoryText" }) do
+	self.Training = makeLabel(gui, "Training", UDim2.fromOffset(360, 116), UDim2.new(1, -380, 0, 105), 14)
+	self.Training.TextWrapped = true
+	self.Training.TextXAlignment = Enum.TextXAlignment.Left
+	self.Training.TextYAlignment = Enum.TextYAlignment.Center
+
+	self.Scout = makeLabel(gui, "Scout", UDim2.new(0.7, 0, 0, 72), UDim2.new(0.15, 0, 0, 112), 15)
+	self.Scout.TextWrapped = true
+	self.Scout.Visible = false
+
+	for _, attribute in ipairs({
+		"HomeScore", "AwayScore", "MatchTime", "ManagerRating", "StorySpeaker", "StoryText",
+		"TrainingStage", "TrainingInstruction", "TrainingProgress", "TrainingScore",
+		"ScoutReport", "ScoutGrade", "ScoutOverall",
+	}) do
 		player:GetAttributeChangedSignal(attribute):Connect(function()
 			self:Refresh()
 		end)
