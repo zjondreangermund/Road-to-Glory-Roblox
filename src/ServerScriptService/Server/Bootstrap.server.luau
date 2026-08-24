@@ -2,12 +2,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local servicesFolder = script.Parent.Services
 local WorldBuilder = require(servicesFolder.WorldBuilder)
-local EnvironmentExpansionService = require(servicesFolder.EnvironmentExpansionService)
-local CareerWorldV2Service = require(servicesFolder.CareerWorldV2Service)
-local CareerWorldPolishService = require(servicesFolder.CareerWorldPolishService)
-local WorldLayoutV3Service = require(servicesFolder.WorldLayoutV3Service)
-local WorldRealismV4Service = require(servicesFolder.WorldRealismV4Service)
-local ClubFacilitiesV4Service = require(servicesFolder.ClubFacilitiesV4Service)
+local WorldMapV5Service = require(servicesFolder.WorldMapV5Service)
+local WorldMapV5PolishService = require(servicesFolder.WorldMapV5PolishService)
+local CareerNPCPopulationV5Service = require(servicesFolder.CareerNPCPopulationV5Service)
+local AvatarNPCV5Service = require(servicesFolder.AvatarNPCV5Service)
+local VehicleServiceV5 = require(servicesFolder.VehicleServiceV5)
 local PlayerDataService = require(servicesFolder.PlayerDataService)
 local PropertyService = require(servicesFolder.PropertyService)
 local RatingService = require(servicesFolder.RatingService)
@@ -31,16 +30,14 @@ local trainingAction = remotes:FindFirstChild("TrainingAction") or Instance.new(
 trainingAction.Name = "TrainingAction"
 trainingAction.Parent = remotes
 
+-- V5 deliberately uses one world plan instead of stacking V2/V3/V4 geometry.
+-- This prevents duplicate districts, overlapping stadiums and road furniture from older runtime passes.
 WorldBuilder:Init()
--- Build legacy foundations first, then replace temporary world pieces with the final V4 road, neighbourhood and club layer.
-EnvironmentExpansionService:Init(WorldBuilder)
-CareerWorldV2Service:Init(WorldBuilder)
-CareerWorldPolishService:Init(WorldBuilder)
-WorldLayoutV3Service:Init(WorldBuilder)
-WorldRealismV4Service:Init(WorldBuilder)
-ClubFacilitiesV4Service:Init(WorldBuilder)
+WorldMapV5Service:Init(WorldBuilder)
+WorldMapV5PolishService:Init(WorldBuilder)
+CareerNPCPopulationV5Service:Init(WorldBuilder)
 
--- Scan gameplay only after the final map exists.
+-- Gameplay scans only after the final road/building/NPC-anchor map exists.
 PlayerDataService:Init()
 PropertyService:Init(WorldBuilder, PlayerDataService)
 RatingService:Init()
@@ -49,7 +46,9 @@ MatchService:Init(WorldBuilder, RatingService)
 TrainingService:Init(WorldBuilder, BallService, trainingAction, footballAction)
 StoryService:Init(WorldBuilder)
 TrialMatchService:Init(WorldBuilder, BallService, RatingService, MatchService, PlayerDataService)
-AIService:Init()
 ExplorationService:Init(WorldBuilder)
+VehicleServiceV5:Init(WorldBuilder)
+AvatarNPCV5Service:Init(WorldBuilder)
+AIService:Init()
 
-print("Road to Glory V0.4 realistic career world + club facilities initialized")
+print("Road to Glory V0.5 unified career world + vehicles + avatar NPCs initialized")
