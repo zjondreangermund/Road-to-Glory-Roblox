@@ -26,36 +26,37 @@ function MatchService:ResetPlayerRatings()
 	end
 end
 
-function MatchService:StartMatch()
+function MatchService:StartMatch(resetBall)
 	self.HomeScore = 0
 	self.AwayScore = 0
 	self.TimeLeft = GameConfig.Match.DurationSeconds
 	self.Active = true
 	self:ResetPlayerRatings()
-	self.WorldBuilder:ResetBall()
+	if resetBall ~= false and not self.Ball:GetAttribute("TrainingMode") then
+		self.WorldBuilder:ResetBall()
+	end
 	self:Broadcast()
 end
 
 function MatchService:AwardGoal(goalFor)
-	if self.GoalLock or not self.Active then
-		return
-	end
+	if self.GoalLock or not self.Active then return end
+	if self.Ball:GetAttribute("TrainingMode") then return end
+
 	self.GoalLock = true
-	if goalFor == "Home" then
-		self.HomeScore += 1
-	else
-		self.AwayScore += 1
-	end
+	if goalFor == "Home" then self.HomeScore += 1 else self.AwayScore += 1 end
 
 	local lastTouch = self.Ball:GetAttribute("LastTouchUserId") or 0
 	local scorer = Players:GetPlayerByUserId(lastTouch)
 	if scorer then
 		self.RatingService:Add(scorer, GameConfig.Rating.GoalBonus, "Goal scored")
+		scorer:SetAttribute("LastMatchEvent", "GOAL! Ball reset for kickoff.")
 	end
 	self:Broadcast()
 
 	task.delay(GameConfig.Match.ResetDelaySeconds, function()
-		self.WorldBuilder:ResetBall()
+		if not self.Ball:GetAttribute("TrainingMode") then
+			self.WorldBuilder:ResetBall()
+		end
 		self.GoalLock = false
 	end)
 end
@@ -64,9 +65,7 @@ function MatchService:ConnectGoals(worldModel)
 	for _, descendant in ipairs(worldModel:GetDescendants()) do
 		if descendant:IsA("BasePart") and descendant.Name == "GoalTrigger" then
 			descendant.Touched:Connect(function(hit)
-				if hit == self.Ball then
-					self:AwardGoal(descendant:GetAttribute("GoalFor"))
-				end
+				if hit == self.Ball then self:AwardGoal(descendant:GetAttribute("GoalFor")) end
 			end)
 		end
 	end
@@ -85,7 +84,7 @@ function MatchService:Init(worldBuilder, ratingService)
 		end)
 	end)
 
-	self:StartMatch()
+	self:StartMatch(true)
 	task.spawn(function()
 		while true do
 			task.wait(1)
@@ -93,9 +92,9 @@ function MatchService:Init(worldBuilder, ratingService)
 				self.TimeLeft = math.max(self.TimeLeft - 1, 0)
 				if self.TimeLeft == 0 then
 					self.Active = false
-					task.delay(5, function()
-						self:StartMatch()
-					end)
+					if GameConfig.Match.AutoRestart then
+						task.delay(5, function() self:StartMatch(false) end)
+					end
 				end
 				self:Broadcast()
 			end
