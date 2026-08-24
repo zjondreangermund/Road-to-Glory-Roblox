@@ -14,15 +14,18 @@ local GameConfig = {
 		PassPower = 55,
 		ShootLift = 16,
 		PassLift = 5,
-		DribbleDistance = 3.4,
-		DribbleBreakDistance = 10,
-		DribbleCatchupDistance = 5.5,
-		DribbleResponsiveness = 14,
-		DribbleMaxSpeed = 46,
+		DribbleDistance = 4.6,
+		DribbleBreakDistance = 12,
+		DribbleHeightOffset = -1.9,
 	},
 	Match = {
 		DurationSeconds = 300,
 		ResetDelaySeconds = 2,
+		AutoRestart = false,
+	},
+	Training = {
+		SprintGoldTime = 3.2,
+		DribbleGoldTime = 14,
 	},
 	Rating = {
 		Start = 6.0,
