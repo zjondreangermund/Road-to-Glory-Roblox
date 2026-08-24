@@ -15,11 +15,16 @@ return {
 			CoachCall = {
 				Speaker = "Coach Samuel",
 				Text = "The academy scout finally called. Before you go, give me one last session on this pitch. Show me the touch that got you noticed.",
-				Objective = "Take your final childhood practice at the dusty pitch.",
+				Objective = "Start your final childhood practice at the dusty pitch.",
+			},
+			ChildhoodPracticeActive = {
+				Speaker = "Coach Samuel",
+				Text = "Ball's out. Take it through the three coloured practice gates in order. Show me your touch one last time.",
+				Objective = "Move the ball through PRACTICE 1, 2 and 3 in order.",
 			},
 			ChildhoodPractice = {
 				Speaker = "Coach Samuel",
-				Text = "Good. Now go. The academy bus is waiting at the main road. Don't make them wait for you.",
+				Text = "That's enough. Good touch, head up, and no fear. Now go — the academy bus is waiting at the main road.",
 				Objective = "Go to the bus stop and travel to Northbridge Academy.",
 			},
 			BusRide = {
