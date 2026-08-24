@@ -30,25 +30,38 @@ local trainingAction = remotes:FindFirstChild("TrainingAction") or Instance.new(
 trainingAction.Name = "TrainingAction"
 trainingAction.Parent = remotes
 
--- V5 deliberately uses one world plan instead of stacking V2/V3/V4 geometry.
--- This prevents duplicate districts, overlapping stadiums and road furniture from older runtime passes.
-WorldBuilder:Init()
-WorldMapV5Service:Init(WorldBuilder)
-WorldMapV5PolishService:Init(WorldBuilder)
-CareerNPCPopulationV5Service:Init(WorldBuilder)
+local startupFailures = {}
+local function safeInit(label, callback)
+	local ok, err = pcall(callback)
+	if not ok then
+		table.insert(startupFailures, label)
+		warn("Road to Glory startup failure [" .. label .. "]: " .. tostring(err))
+	end
+	return ok
+end
 
--- Gameplay scans only after the final road/building/NPC-anchor map exists.
-PlayerDataService:Init()
-PropertyService:Init(WorldBuilder, PlayerDataService)
-RatingService:Init()
-BallService:Init(WorldBuilder.Ball, footballAction)
-MatchService:Init(WorldBuilder, RatingService)
-TrainingService:Init(WorldBuilder, BallService, trainingAction, footballAction)
-StoryService:Init(WorldBuilder)
-TrialMatchService:Init(WorldBuilder, BallService, RatingService, MatchService, PlayerDataService)
-ExplorationService:Init(WorldBuilder)
-VehicleServiceV5:Init(WorldBuilder)
-AvatarNPCV5Service:Init(WorldBuilder)
-AIService:Init()
+-- V5 uses one coordinate plan rather than stacking the old V2/V3/V4 runtime worlds.
+safeInit("WorldBuilder", function() WorldBuilder:Init() end)
+safeInit("WorldMapV5", function() WorldMapV5Service:Init(WorldBuilder) end)
+safeInit("WorldMapV5Polish", function() WorldMapV5PolishService:Init(WorldBuilder) end)
+safeInit("CareerNPCPopulationV5", function() CareerNPCPopulationV5Service:Init(WorldBuilder) end)
 
-print("Road to Glory V0.5 unified career world + vehicles + avatar NPCs initialized")
+-- Career/gameplay services still initialize independently if a visual subsystem has a problem.
+safeInit("PlayerData", function() PlayerDataService:Init() end)
+safeInit("Property", function() PropertyService:Init(WorldBuilder, PlayerDataService) end)
+safeInit("Rating", function() RatingService:Init() end)
+safeInit("Ball", function() BallService:Init(WorldBuilder.Ball, footballAction) end)
+safeInit("Match", function() MatchService:Init(WorldBuilder, RatingService) end)
+safeInit("Training", function() TrainingService:Init(WorldBuilder, BallService, trainingAction, footballAction) end)
+safeInit("Story", function() StoryService:Init(WorldBuilder) end)
+safeInit("TrialMatch", function() TrialMatchService:Init(WorldBuilder, BallService, RatingService, MatchService, PlayerDataService) end)
+safeInit("Exploration", function() ExplorationService:Init(WorldBuilder) end)
+safeInit("Vehicles", function() VehicleServiceV5:Init(WorldBuilder) end)
+safeInit("AvatarNPCs", function() AvatarNPCV5Service:Init(WorldBuilder) end)
+safeInit("AI", function() AIService:Init() end)
+
+if #startupFailures == 0 then
+	print("Road to Glory V0.5 unified career world + vehicles + avatar NPCs initialized")
+else
+	warn("Road to Glory V0.5 initialized with recoverable failures: " .. table.concat(startupFailures, ", "))
+end
