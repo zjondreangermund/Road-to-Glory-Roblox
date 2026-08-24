@@ -33,4 +33,4 @@ AIService:Init()
 TrainingService:Init(WorldBuilder, BallService, trainingAction, footballAction)
 ExplorationService:Init(WorldBuilder)
 
-print("Road to Glory V0.2 exploration build initialized")
+print("Road to Glory V0.2 scenic academy build initialized")
