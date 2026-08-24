@@ -110,7 +110,7 @@ function StoryService:ConnectWorldActions()
 				prompt.Name = "StoryPrompt"
 				prompt.ActionText = node:GetAttribute("StoryPrompt") or "Talk"
 				prompt.ObjectText = node:GetAttribute("StoryTitle") or "Story"
-				prompt.HoldDuration = action == "TravelAcademy" or action == "TravelStadium" and 0.5 or 0
+				prompt.HoldDuration = (action == "TravelAcademy" or action == "TravelStadium") and 0.5 or 0
 				prompt.MaxActivationDistance = 10
 				prompt.RequiresLineOfSight = false
 				prompt.Parent = node
@@ -131,20 +131,33 @@ function StoryService:WatchTraining(player)
 	end)
 end
 
+function StoryService:PlaceForCurrentStage(player)
+	local markers = self.WorldBuilder.StoryMarkers or {}
+	local chapter = player:GetAttribute("CareerChapter") or "Origins"
+	local stage = player:GetAttribute("CareerStage") or "WakeUp"
+	if chapter == "Origins" then
+		teleportPlayer(player, markers.HomeSpawn or Vector3.new(-555, 3, -157), Vector3.new(-555, 3, -180))
+		player:SetAttribute("ExplorationLocation", "Childhood Home")
+		if stage == "WakeUp" or stage == "" then self:SetStage(player, "Origins", "WakeUp") end
+	elseif chapter == "AcademyTrial" and stage == "TrialMatch" then
+		teleportPlayer(player, markers.StadiumArrival or Vector3.new(-88, 3, -421), markers.StadiumTunnel)
+		player:SetAttribute("ExplorationLocation", "Stadium Approach")
+	else
+		teleportPlayer(player, markers.AcademyArrival or Vector3.new(-88, 3, -124), Vector3.new(0, 3, 0))
+		player:SetAttribute("ExplorationLocation", "Academy Entrance")
+	end
+end
+
 function StoryService:SetupPlayer(player)
-	player:SetAttribute("CareerObjective", "")
 	self:WatchTraining(player)
-	local function placeAtOrigins(character)
+	local function place(character)
 		local root = character:WaitForChild("HumanoidRootPart", 8)
 		if not root then return end
 		task.wait(0.15)
-		local markers = self.WorldBuilder.StoryMarkers or {}
-		teleportPlayer(player, markers.HomeSpawn or Vector3.new(-555, 3, -157), Vector3.new(-555, 3, -180))
-		self:SetStage(player, "Origins", "WakeUp")
-		player:SetAttribute("ExplorationLocation", "Childhood Home")
+		self:PlaceForCurrentStage(player)
 	end
-	player.CharacterAdded:Connect(placeAtOrigins)
-	if player.Character then task.defer(placeAtOrigins, player.Character) end
+	player.CharacterAdded:Connect(place)
+	if player.Character then task.defer(place, player.Character) end
 end
 
 function StoryService:Init(worldBuilder)
