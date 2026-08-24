@@ -4,6 +4,7 @@ local servicesFolder = script.Parent.Services
 local WorldBuilder = require(servicesFolder.WorldBuilder)
 local EnvironmentExpansionService = require(servicesFolder.EnvironmentExpansionService)
 local CareerWorldV2Service = require(servicesFolder.CareerWorldV2Service)
+local CareerWorldPolishService = require(servicesFolder.CareerWorldPolishService)
 local PlayerDataService = require(servicesFolder.PlayerDataService)
 local PropertyService = require(servicesFolder.PropertyService)
 local RatingService = require(servicesFolder.RatingService)
@@ -27,9 +28,10 @@ trainingAction.Name = "TrainingAction"
 trainingAction.Parent = remotes
 
 WorldBuilder:Init()
--- Build all world geometry before goal, exploration and property services scan the map.
+-- Build and polish all world geometry before goal, exploration and property services scan the map.
 EnvironmentExpansionService:Init(WorldBuilder)
 CareerWorldV2Service:Init(WorldBuilder)
+CareerWorldPolishService:Init(WorldBuilder)
 PlayerDataService:Init()
 PropertyService:Init(WorldBuilder, PlayerDataService)
 RatingService:Init()
