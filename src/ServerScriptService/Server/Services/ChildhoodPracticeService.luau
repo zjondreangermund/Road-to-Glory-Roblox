@@ -109,7 +109,6 @@ function ChildhoodPracticeService:BuildCourse()
 		end)
 	end
 
-	-- A few cones make the pitch feel like an actual last training session.
 	for _, offset in ipairs({
 		Vector3.new(-36, 0, -42), Vector3.new(-12, 0, -42), Vector3.new(12, 0, -42), Vector3.new(36, 0, -42),
 		Vector3.new(-34, 0, 34), Vector3.new(34, 0, 34),
@@ -225,7 +224,11 @@ end
 function ChildhoodPracticeService:Init(worldBuilder, ballService)
 	self.WorldBuilder = worldBuilder
 	self.BallService = ballService
-	self:BuildCourse()
+	if self:BuildCourse() then
+		-- The ball and practice equipment should already be visible when the player
+		-- arrives at the childhood pitch, before the scored practice session begins.
+		self:ResetBall()
+	end
 	RunService.Heartbeat:Connect(function() self:Update() end)
 end
 
