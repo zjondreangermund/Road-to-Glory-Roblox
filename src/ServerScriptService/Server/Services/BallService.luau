@@ -41,13 +41,23 @@ function BallService:CanTouchBall(player)
 	return (root.Position - self.Ball.Position).Magnitude <= GameConfig.Football.KickDistance
 end
 
-function BallService:Kick(player, direction, power, lift)
+function BallService:ReleaseAllDribblers()
+	for player in pairs(self.Dribblers) do
+		self.Dribblers[player] = nil
+	end
+	if self.Ball then
+		self.Ball:SetAttribute("DribbleOwnerUserId", 0)
+	end
+end
+
+function BallService:Kick(player, direction, power, lift, actionName)
 	if not self:CanTouchBall(player) or typeof(direction) ~= "Vector3" then
 		return
 	end
-	self.Dribblers[player] = nil
+	self:SetDribbling(player, false)
 	local kickDirection = flatUnit(direction)
 	self.Ball:SetAttribute("LastTouchUserId", player.UserId)
+	self.Ball:SetAttribute("LastAction", actionName or "Kick")
 	pcall(function()
 		self.Ball:SetNetworkOwner(nil)
 	end)
@@ -57,81 +67,71 @@ end
 function BallService:SetDribbling(player, enabled)
 	if enabled and self:CanTouchBall(player) then
 		self.Dribblers[player] = true
+		self.Ball:SetAttribute("DribbleOwnerUserId", player.UserId)
+		self.Ball:SetAttribute("LastAction", "Dribble")
 		pcall(function()
 			self.Ball:SetNetworkOwner(nil)
 		end)
 	else
 		self.Dribblers[player] = nil
+		if self.Ball and self.Ball:GetAttribute("DribbleOwnerUserId") == player.UserId then
+			self.Ball:SetAttribute("DribbleOwnerUserId", 0)
+		end
 	end
 end
 
 function BallService:UpdateDribble(player)
 	local root = self:GetRoot(player)
 	if not root or not self.Ball or not self.Ball.Parent then
-		self.Dribblers[player] = nil
+		self:SetDribbling(player, false)
 		return
 	end
 
 	local distance = (root.Position - self.Ball.Position).Magnitude
 	if distance > GameConfig.Football.DribbleBreakDistance then
-		self.Dribblers[player] = nil
+		self:SetDribbling(player, false)
 		return
 	end
 
 	local direction = getControlDirection(player, root)
-	local targetY = math.max(1.6, root.Position.Y - 1.9)
+	local targetY = math.max(1.6, root.Position.Y + GameConfig.Football.DribbleHeightOffset)
 	local target = Vector3.new(
 		root.Position.X + (direction.X * GameConfig.Football.DribbleDistance),
 		targetY,
 		root.Position.Z + (direction.Z * GameConfig.Football.DribbleDistance)
 	)
 
-	local relative = self.Ball.Position - root.Position
-	local planarRelative = Vector3.new(relative.X, 0, relative.Z)
-	local isBehind = planarRelative.Magnitude > 0.1 and planarRelative.Unit:Dot(direction) < -0.05
-
-	-- If the player has run past the ball, recover it immediately to the front.
-	-- This prevents the prototype dribble from trailing behind the character.
-	if isBehind or distance > GameConfig.Football.DribbleCatchupDistance then
-		self.Ball.CFrame = CFrame.new(target)
-		self.Ball.AssemblyLinearVelocity = Vector3.new(root.AssemblyLinearVelocity.X, 0, root.AssemblyLinearVelocity.Z)
-		self.Ball.AssemblyAngularVelocity = Vector3.zero
-	else
-		local delta = target - self.Ball.Position
-		local velocity = Vector3.new(
-			(delta.X * GameConfig.Football.DribbleResponsiveness) + (root.AssemblyLinearVelocity.X * 0.45),
-			self.Ball.AssemblyLinearVelocity.Y,
-			(delta.Z * GameConfig.Football.DribbleResponsiveness) + (root.AssemblyLinearVelocity.Z * 0.45)
-		)
-		local flatVelocity = Vector3.new(velocity.X, 0, velocity.Z)
-		if flatVelocity.Magnitude > GameConfig.Football.DribbleMaxSpeed then
-			flatVelocity = flatVelocity.Unit * GameConfig.Football.DribbleMaxSpeed
-			velocity = Vector3.new(flatVelocity.X, velocity.Y, flatVelocity.Z)
-		end
-		self.Ball.AssemblyLinearVelocity = velocity
-	end
-
+	-- Prototype close control: keep the ball at the footballer's front foot every frame.
+	-- This removes the physics lag that allowed the character to run ahead of the ball.
+	self.Ball.CFrame = CFrame.new(target)
+	self.Ball.AssemblyLinearVelocity = Vector3.new(root.AssemblyLinearVelocity.X, 0, root.AssemblyLinearVelocity.Z)
+	self.Ball.AssemblyAngularVelocity = Vector3.zero
 	self.Ball:SetAttribute("LastTouchUserId", player.UserId)
+	self.Ball:SetAttribute("DribbleOwnerUserId", player.UserId)
+	self.Ball:SetAttribute("LastAction", "Dribble")
 end
 
 function BallService:Init(ball, actionRemote)
 	self.Ball = ball
 	self.Remote = actionRemote
+	ball:SetAttribute("DribbleOwnerUserId", 0)
+	ball:SetAttribute("LastAction", "None")
+	ball:SetAttribute("TrainingMode", false)
 
 	actionRemote.OnServerEvent:Connect(function(player, action, payload)
 		if action == "Shoot" then
 			local direction = typeof(payload) == "Vector3" and payload or Vector3.new(0, 0, -1)
-			self:Kick(player, direction, GameConfig.Football.ShootPower, GameConfig.Football.ShootLift)
+			self:Kick(player, direction, GameConfig.Football.ShootPower, GameConfig.Football.ShootLift, "Shoot")
 		elseif action == "Pass" then
 			local direction = typeof(payload) == "Vector3" and payload or Vector3.new(0, 0, -1)
-			self:Kick(player, direction, GameConfig.Football.PassPower, GameConfig.Football.PassLift)
+			self:Kick(player, direction, GameConfig.Football.PassPower, GameConfig.Football.PassLift, "Pass")
 		elseif action == "Dribble" then
 			self:SetDribbling(player, payload == true)
 		end
 	end)
 
 	Players.PlayerRemoving:Connect(function(player)
-		self.Dribblers[player] = nil
+		self:SetDribbling(player, false)
 	end)
 
 	RunService.Heartbeat:Connect(function()
