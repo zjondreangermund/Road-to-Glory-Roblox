@@ -20,12 +20,36 @@ local function deepCopy(value)
 	return copy
 end
 
+local function mergeMissing(target, defaults)
+	for key, value in pairs(defaults) do
+		if target[key] == nil then
+			target[key] = deepCopy(value)
+		elseif type(value) == "table" and type(target[key]) == "table" then
+			mergeMissing(target[key], value)
+		end
+	end
+	return target
+end
+
+function PlayerDataService:Migrate(profile)
+	profile = type(profile) == "table" and profile or deepCopy(Defaults)
+	mergeMissing(profile, Defaults)
+	profile.Version = Defaults.Version
+	profile.Properties = profile.Properties or { OwnedHomes = {}, CurrentHome = "" }
+	profile.Properties.OwnedHomes = profile.Properties.OwnedHomes or {}
+	profile.Properties.CurrentHome = profile.Properties.CurrentHome or ""
+	profile.Career.Money = tonumber(profile.Career.Money) or Defaults.Career.Money
+	return profile
+end
+
 function PlayerDataService:ApplyAttributes(player, profile)
 	player:SetAttribute("CareerChapter", profile.Career.Chapter)
 	player:SetAttribute("CareerStage", profile.Career.Stage)
 	player:SetAttribute("Overall", profile.Career.Overall)
 	player:SetAttribute("ManagerTrust", profile.Career.ManagerTrust)
 	player:SetAttribute("Position", profile.Identity.Position)
+	player:SetAttribute("CareerMoney", profile.Career.Money or 0)
+	player:SetAttribute("CurrentHome", profile.Properties and profile.Properties.CurrentHome or "")
 end
 
 function PlayerDataService:Load(player)
@@ -43,6 +67,7 @@ function PlayerDataService:Load(player)
 		end
 	end
 
+	profile = self:Migrate(profile)
 	self.Profiles[player] = profile
 	self:ApplyAttributes(player, profile)
 	return profile
