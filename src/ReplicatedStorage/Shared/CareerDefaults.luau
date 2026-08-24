@@ -1,5 +1,5 @@
 return {
-	Version = 1,
+	Version = 2,
 	Identity = {
 		DisplayName = "Prospect",
 		Nationality = "Namibia",
@@ -16,7 +16,12 @@ return {
 		TeamChemistry = 50,
 		FanReputation = 0,
 		MediaReputation = 0,
-		Money = 0,
+		-- The player starts modestly: enough for the cheapest rural room, not enough to skip the early career ladder.
+		Money = 350,
+	},
+	Properties = {
+		OwnedHomes = {},
+		CurrentHome = "",
 	},
 	Attributes = {
 		Pace = 62,
