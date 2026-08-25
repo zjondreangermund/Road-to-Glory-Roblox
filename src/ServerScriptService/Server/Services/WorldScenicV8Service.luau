@@ -4,10 +4,8 @@ local C = {
 	White = Color3.fromRGB(242, 244, 246),
 	Black = Color3.fromRGB(22, 25, 29),
 	Navy = Color3.fromRGB(18, 34, 60),
-	Blue = Color3.fromRGB(38, 91, 168),
 	Teal = Color3.fromRGB(34, 126, 135),
 	Purple = Color3.fromRGB(104, 58, 145),
-	Gold = Color3.fromRGB(221, 178, 54),
 	Road = Color3.fromRGB(47, 50, 53),
 	Concrete = Color3.fromRGB(171, 175, 178),
 	Pavement = Color3.fromRGB(198, 200, 201),
@@ -17,7 +15,6 @@ local C = {
 	Steel = Color3.fromRGB(71, 78, 86),
 	Wood = Color3.fromRGB(108, 76, 49),
 	Yellow = Color3.fromRGB(232, 214, 137),
-	Red = Color3.fromRGB(184, 48, 53),
 }
 
 local function part(parent, name, size, position, color, transparency, canCollide, material)
@@ -71,6 +68,7 @@ local function roadH(parent, name, x1, x2, z, width)
 	local length = maxX - minX
 	local cx = (minX + maxX) / 2
 	local road = roadPart(part(parent, name, Vector3.new(length, 0.34, width), Vector3.new(cx, 0.13, z), C.Road, 0, true, Enum.Material.Asphalt))
+	road:SetAttribute("RoadSurfaceV8", true)
 	for x = minX + 16, maxX - 16, 30 do
 		roadPart(part(parent, name .. "Dash", Vector3.new(10, 0.05, 0.24), Vector3.new(x, 0.34, z), C.Yellow, 0, false))
 	end
@@ -87,6 +85,7 @@ local function roadV(parent, name, x, z1, z2, width)
 	local length = maxZ - minZ
 	local cz = (minZ + maxZ) / 2
 	local road = roadPart(part(parent, name, Vector3.new(width, 0.34, length), Vector3.new(x, 0.13, cz), C.Road, 0, true, Enum.Material.Asphalt))
+	road:SetAttribute("RoadSurfaceV8", true)
 	for z = minZ + 16, maxZ - 16, 30 do
 		roadPart(part(parent, name .. "Dash", Vector3.new(0.24, 0.05, 10), Vector3.new(x, 0.34, z), C.Yellow, 0, false))
 	end
@@ -117,12 +116,12 @@ end
 
 local function lamp(parent, position)
 	part(parent, "ScenicLampPole", Vector3.new(0.42, 10, 0.42), position + Vector3.new(0, 5, 0), C.Steel, 0, true, Enum.Material.Metal)
-	local light = part(parent, "ScenicLampHead", Vector3.new(2.1, 0.35, 1.1), position + Vector3.new(0, 9.8, 0), Color3.fromRGB(247, 242, 210), 0, false, Enum.Material.Neon)
-	local point = Instance.new("PointLight")
-	point.Range = 22
-	point.Brightness = 1.2
-	point.Color = Color3.fromRGB(255, 244, 214)
-	point.Parent = light
+	local head = part(parent, "ScenicLampHead", Vector3.new(2.1, 0.35, 1.1), position + Vector3.new(0, 9.8, 0), Color3.fromRGB(247, 242, 210), 0, false, Enum.Material.Neon)
+	local light = Instance.new("PointLight")
+	light.Range = 22
+	light.Brightness = 1.2
+	light.Color = Color3.fromRGB(255, 244, 214)
+	light.Parent = head
 end
 
 local function tubeBetween(parent, name, a, b, radius, color, transparency, canCollide)
@@ -160,24 +159,20 @@ local function goal(parent, centreX, frontZ, sign, baseY, width, height)
 end
 
 local function createPitch(parent, centre, width, length)
-	local field = part(parent, "MatchPitch", Vector3.new(width, 0.42, length), Vector3.new(centre.X, 0.2, centre.Z), C.Grass, 0, true, Enum.Material.Grass)
+	part(parent, "MatchPitch", Vector3.new(width, 0.42, length), Vector3.new(centre.X, 0.2, centre.Z), C.Grass, 0, true, Enum.Material.Grass)
 	local y = 0.43
 	for i = -5, 5 do
 		local shade = i % 2 == 0 and Color3.fromRGB(41, 111, 50) or Color3.fromRGB(47, 120, 56)
 		part(parent, "PitchStripe", Vector3.new(width / 11, 0.025, length), Vector3.new(centre.X + i * width / 11, y, centre.Z), shade, 0, false, Enum.Material.Grass)
 	end
-	local line = C.White
 	local t = 0.16
-	part(parent, "TouchlineW", Vector3.new(t, 0.04, length - 1), Vector3.new(centre.X - width / 2 + 0.5, y + 0.03, centre.Z), line, 0, false)
-	part(parent, "TouchlineE", Vector3.new(t, 0.04, length - 1), Vector3.new(centre.X + width / 2 - 0.5, y + 0.03, centre.Z), line, 0, false)
-	part(parent, "GoalLineN", Vector3.new(width - 1, 0.04, t), Vector3.new(centre.X, y + 0.03, centre.Z + length / 2 - 0.5), line, 0, false)
-	part(parent, "GoalLineS", Vector3.new(width - 1, 0.04, t), Vector3.new(centre.X, y + 0.03, centre.Z - length / 2 + 0.5), line, 0, false)
-	part(parent, "Halfway", Vector3.new(width - 1, 0.04, t), Vector3.new(centre.X, y + 0.03, centre.Z), line, 0, false)
-	local spot = part(parent, "CentreSpot", Vector3.new(0.8, 0.05, 0.8), Vector3.new(centre.X, y + 0.04, centre.Z), line, 0, false)
-	spot.Shape = Enum.PartType.Cylinder
+	part(parent, "TouchlineW", Vector3.new(t, 0.04, length - 1), Vector3.new(centre.X - width / 2 + 0.5, y + 0.03, centre.Z), C.White, 0, false)
+	part(parent, "TouchlineE", Vector3.new(t, 0.04, length - 1), Vector3.new(centre.X + width / 2 - 0.5, y + 0.03, centre.Z), C.White, 0, false)
+	part(parent, "GoalLineN", Vector3.new(width - 1, 0.04, t), Vector3.new(centre.X, y + 0.03, centre.Z + length / 2 - 0.5), C.White, 0, false)
+	part(parent, "GoalLineS", Vector3.new(width - 1, 0.04, t), Vector3.new(centre.X, y + 0.03, centre.Z - length / 2 + 0.5), C.White, 0, false)
+	part(parent, "Halfway", Vector3.new(width - 1, 0.04, t), Vector3.new(centre.X, y + 0.03, centre.Z), C.White, 0, false)
 	goal(parent, centre.X, centre.Z + length / 2 - 3, 1, 0.43, 27, 9)
 	goal(parent, centre.X, centre.Z - length / 2 + 3, -1, 0.43, 27, 9)
-	return field
 end
 
 local function tierStand(parent, name, centre, side, direction, pitchWidth, pitchLength, accent)
@@ -187,17 +182,12 @@ local function tierStand(parent, name, centre, side, direction, pitchWidth, pitc
 	local along = side == "X" and pitchLength + 62 or pitchWidth + 68
 	local fieldEdge = side == "X" and pitchWidth / 2 or pitchLength / 2
 	local lowerRows, upperRows = 9, 10
+
 	for row = 1, lowerRows do
 		local setback = fieldEdge + 9 + row * 2.25
 		local rise = row * 1.22
-		local pos, size
-		if side == "X" then
-			pos = Vector3.new(centre.X + direction * setback, rise, centre.Z)
-			size = Vector3.new(4.5, 1.0, along)
-		else
-			pos = Vector3.new(centre.X, rise, centre.Z + direction * setback)
-			size = Vector3.new(along, 1.0, 4.5)
-		end
+		local pos = side == "X" and Vector3.new(centre.X + direction * setback, rise, centre.Z) or Vector3.new(centre.X, rise, centre.Z + direction * setback)
+		local size = side == "X" and Vector3.new(4.5, 1, along) or Vector3.new(along, 1, 4.5)
 		part(stand, "LowerTerrace", size, pos, row % 2 == 0 and Color3.fromRGB(61, 67, 75) or Color3.fromRGB(52, 58, 66), 0, true, Enum.Material.Concrete)
 		local seatPos = side == "X" and pos + Vector3.new(-direction * 1.15, 0.82, 0) or pos + Vector3.new(0, 0.82, -direction * 1.15)
 		local seatSize = side == "X" and Vector3.new(1.3, 0.7, along - 4) or Vector3.new(along - 4, 0.7, 1.3)
@@ -205,48 +195,28 @@ local function tierStand(parent, name, centre, side, direction, pitchWidth, pitc
 	end
 
 	local concourseSetback = fieldEdge + 9 + lowerRows * 2.25 + 7
-	local concoursePos, concourseSize
-	if side == "X" then
-		concoursePos = Vector3.new(centre.X + direction * concourseSetback, 13.5, centre.Z)
-		concourseSize = Vector3.new(14, 3, along + 8)
-	else
-		concoursePos = Vector3.new(centre.X, 13.5, centre.Z + direction * concourseSetback)
-		concourseSize = Vector3.new(along + 8, 3, 14)
-	end
+	local concoursePos = side == "X" and Vector3.new(centre.X + direction * concourseSetback, 13.5, centre.Z) or Vector3.new(centre.X, 13.5, centre.Z + direction * concourseSetback)
+	local concourseSize = side == "X" and Vector3.new(14, 3, along + 8) or Vector3.new(along + 8, 3, 14)
 	part(stand, "TierConcourse", concourseSize, concoursePos, C.Concrete, 0, true, Enum.Material.Concrete)
 
 	for row = 1, upperRows do
 		local setback = concourseSetback + 6 + row * 2.25
 		local rise = 16 + row * 1.28
-		local pos, size
-		if side == "X" then
-			pos = Vector3.new(centre.X + direction * setback, rise, centre.Z)
-			size = Vector3.new(4.5, 1.0, along)
-		else
-			pos = Vector3.new(centre.X, rise, centre.Z + direction * setback)
-			size = Vector3.new(along, 1.0, 4.5)
-		end
+		local pos = side == "X" and Vector3.new(centre.X + direction * setback, rise, centre.Z) or Vector3.new(centre.X, rise, centre.Z + direction * setback)
+		local size = side == "X" and Vector3.new(4.5, 1, along) or Vector3.new(along, 1, 4.5)
 		part(stand, "UpperTerrace", size, pos, row % 2 == 0 and Color3.fromRGB(56, 62, 70) or Color3.fromRGB(47, 53, 61), 0, true, Enum.Material.Concrete)
 		local seatPos = side == "X" and pos + Vector3.new(-direction * 1.15, 0.82, 0) or pos + Vector3.new(0, 0.82, -direction * 1.15)
 		local seatSize = side == "X" and Vector3.new(1.3, 0.7, along - 4) or Vector3.new(along - 4, 0.7, 1.3)
 		part(stand, "UpperSeatBand", seatSize, seatPos, row % 4 == 0 and C.White or accent, 0, false)
 	end
 
-	local outerSetback = concourseSetback + 6 + upperRows * 2.25 + 5
-	local facadePos, facadeSize
-	if side == "X" then
-		facadePos = Vector3.new(centre.X + direction * outerSetback, 17, centre.Z)
-		facadeSize = Vector3.new(8, 34, along + 14)
-	else
-		facadePos = Vector3.new(centre.X, 17, centre.Z + direction * outerSetback)
-		facadeSize = Vector3.new(along + 14, 34, 8)
-	end
-	local facade = part(stand, "OuterFacade", facadeSize, facadePos, C.Navy, 0, true, Enum.Material.Metal)
-	facade:SetAttribute("StadiumFacade", true)
-	return stand, outerSetback
+	local outer = concourseSetback + 6 + upperRows * 2.25 + 5
+	local facadePos = side == "X" and Vector3.new(centre.X + direction * outer, 17, centre.Z) or Vector3.new(centre.X, 17, centre.Z + direction * outer)
+	local facadeSize = side == "X" and Vector3.new(8, 34, along + 14) or Vector3.new(along + 14, 34, 8)
+	part(stand, "OuterFacade", facadeSize, facadePos, C.Navy, 0, true, Enum.Material.Metal)
 end
 
-local function createStadiumComplex(parent, name, centre, accent, clubName, capacityText, covered)
+local function createStadium(parent, name, centre, accent, clubName, subtitle, covered)
 	local stadium = Instance.new("Model")
 	stadium.Name = name
 	stadium:SetAttribute("DoubleTierStadium", true)
@@ -255,19 +225,18 @@ local function createStadiumComplex(parent, name, centre, accent, clubName, capa
 
 	local pitchWidth, pitchLength = 124, 196
 	createPitch(stadium, centre, pitchWidth, pitchLength)
-	local _, westOuter = tierStand(stadium, "WestDoubleTierStand", centre, "X", -1, pitchWidth, pitchLength, accent)
+	tierStand(stadium, "WestDoubleTierStand", centre, "X", -1, pitchWidth, pitchLength, accent)
 	tierStand(stadium, "EastDoubleTierStand", centre, "X", 1, pitchWidth, pitchLength, accent)
 	tierStand(stadium, "NorthDoubleTierStand", centre, "Z", 1, pitchWidth, pitchLength, accent)
 	tierStand(stadium, "SouthDoubleTierStand", centre, "Z", -1, pitchWidth, pitchLength, accent)
 
-	-- Upper-tier canopy on all four sides. Open stadium leaves the playing surface exposed.
 	part(stadium, "WestCanopy", Vector3.new(54, 1.5, pitchLength + 92), Vector3.new(centre.X - pitchWidth / 2 - 42, 34, centre.Z), accent, 0, true, Enum.Material.Metal)
 	part(stadium, "EastCanopy", Vector3.new(54, 1.5, pitchLength + 92), Vector3.new(centre.X + pitchWidth / 2 + 42, 34, centre.Z), accent, 0, true, Enum.Material.Metal)
 	part(stadium, "NorthCanopy", Vector3.new(pitchWidth + 100, 1.5, 52), Vector3.new(centre.X, 34, centre.Z + pitchLength / 2 + 40), accent, 0, true, Enum.Material.Metal)
 	part(stadium, "SouthCanopy", Vector3.new(pitchWidth + 100, 1.5, 52), Vector3.new(centre.X, 34, centre.Z - pitchLength / 2 - 40), accent, 0, true, Enum.Material.Metal)
 
 	if covered then
-		local roof = part(stadium, "PitchRoof", Vector3.new(pitchWidth + 34, 1.0, pitchLength + 30), Vector3.new(centre.X, 48, centre.Z), C.Glass, 0.32, true, Enum.Material.Glass)
+		local roof = part(stadium, "PitchRoof", Vector3.new(pitchWidth + 34, 1, pitchLength + 30), Vector3.new(centre.X, 48, centre.Z), C.Glass, 0.32, true, Enum.Material.Glass)
 		roof.Reflectance = 0.08
 		for x = centre.X - pitchWidth / 2 - 8, centre.X + pitchWidth / 2 + 8, 22 do
 			tubeBetween(stadium, "RoofTruss", Vector3.new(x, 46.8, centre.Z - pitchLength / 2 - 12), Vector3.new(x, 46.8, centre.Z + pitchLength / 2 + 12), 0.45, C.Steel, 0, true)
@@ -287,7 +256,6 @@ local function createStadiumComplex(parent, name, centre, accent, clubName, capa
 			end
 		end
 	else
-		-- Traditional corner floodlights for the open stadium.
 		for _, offset in ipairs({ Vector3.new(-120, 0, -155), Vector3.new(120, 0, -155), Vector3.new(-120, 0, 155), Vector3.new(120, 0, 155) }) do
 			local base = centre + offset
 			part(stadium, "FloodlightMast", Vector3.new(1.5, 54, 1.5), Vector3.new(base.X, 27, base.Z), C.Steel, 0, true, Enum.Material.Metal)
@@ -301,104 +269,86 @@ local function createStadiumComplex(parent, name, centre, accent, clubName, capa
 		end
 	end
 
-	-- Press/VIP suite between tiers on west stand.
 	local press = part(stadium, "PressAndVIP", Vector3.new(22, 11, 86), Vector3.new(centre.X - pitchWidth / 2 - 36, 22, centre.Z), Color3.fromRGB(48, 55, 64), 0, true, Enum.Material.Metal)
-	local glass = part(stadium, "PressGlass", Vector3.new(0.28, 7, 72), press.Position + Vector3.new(11.15, 0, 0), C.Glass, 0.14, false, Enum.Material.Glass)
-	glass.Reflectance = 0.05
+	part(stadium, "PressGlass", Vector3.new(0.28, 7, 72), press.Position + Vector3.new(11.15, 0, 0), C.Glass, 0.14, false, Enum.Material.Glass)
+	local board = part(stadium, "MainScoreboard", Vector3.new(50, 18, 1), Vector3.new(centre.X, 39, centre.Z + pitchLength / 2 + 34), C.Black, 0, false)
+	textFace(board, clubName .. "\n" .. subtitle, Enum.NormalId.Front)
 
-	local scoreboard = part(stadium, "MainScoreboard", Vector3.new(50, 18, 1.0), Vector3.new(centre.X, 39, centre.Z + pitchLength / 2 + 34), C.Black, 0, false, Enum.Material.SmoothPlastic)
-	textFace(scoreboard, clubName .. "\n" .. capacityText, Enum.NormalId.Front)
-
-	-- Player tunnel and support spaces are self-contained.
 	local tunnel = part(stadium, "PlayerTunnel", Vector3.new(24, 10, 34), Vector3.new(centre.X, 5, centre.Z - pitchLength / 2 - 20), C.Navy, 0, true, Enum.Material.Concrete)
 	part(stadium, "TunnelOpening", Vector3.new(14, 7.5, 0.3), Vector3.new(centre.X, 4, centre.Z - pitchLength / 2 - 2.8), C.Black, 0, false)
 	part(stadium, "HomeChanging", Vector3.new(42, 12, 34), tunnel.Position + Vector3.new(-34, 1, -2), Color3.fromRGB(73, 81, 90), 0, true, Enum.Material.Concrete)
 	part(stadium, "AwayChanging", Vector3.new(42, 12, 34), tunnel.Position + Vector3.new(34, 1, -2), Color3.fromRGB(73, 81, 90), 0, true, Enum.Material.Concrete)
 	part(stadium, "MedicalRoom", Vector3.new(26, 10, 25), tunnel.Position + Vector3.new(-55, 0, -2), Color3.fromRGB(205, 211, 212), 0, true, Enum.Material.Concrete)
 	part(stadium, "MediaRoom", Vector3.new(32, 10, 25), tunnel.Position + Vector3.new(55, 0, -2), Color3.fromRGB(88, 96, 104), 0, true, Enum.Material.Concrete)
-
-	stadium:SetAttribute("OuterStandOffset", westOuter)
-	return stadium
 end
 
 local function parkingLot(parent, centre, width, depth)
-	local lot = part(parent, "StadiumParking", Vector3.new(width, 0.25, depth), Vector3.new(centre.X, 0.15, centre.Z), Color3.fromRGB(61, 64, 67), 0, true, Enum.Material.Asphalt)
+	part(parent, "StadiumParking", Vector3.new(width, 0.25, depth), Vector3.new(centre.X, 0.15, centre.Z), Color3.fromRGB(61, 64, 67), 0, true, Enum.Material.Asphalt)
 	for x = centre.X - width / 2 + 10, centre.X + width / 2 - 10, 12 do
 		part(parent, "ParkingLine", Vector3.new(0.16, 0.04, depth - 8), Vector3.new(x, 0.3, centre.Z), C.White, 0, false)
 	end
-	return lot
 end
 
-local function stadiumSupportVillage(parent, centre, accent, label)
+local function supportVillage(parent, centre, accent, label)
 	local plaza = part(parent, "ArrivalPlaza", Vector3.new(190, 0.3, 72), Vector3.new(centre.X, 0.18, centre.Z - 220), C.Concrete, 0, true, Enum.Material.Concrete)
 	for _, x in ipairs({ -75, -45, 45, 75 }) do
 		local kiosk = part(parent, "MatchdayKiosk", Vector3.new(20, 9, 14), plaza.Position + Vector3.new(x, 4.5, 5), math.abs(x) < 60 and accent or C.Navy, 0, true, Enum.Material.Metal)
-		local window = part(parent, "KioskWindow", Vector3.new(12, 4, 0.25), kiosk.Position + Vector3.new(0, 0.5, -7.1), C.Glass, 0.18, false, Enum.Material.Glass)
-		window.Reflectance = 0.04
+		part(parent, "KioskWindow", Vector3.new(12, 4, 0.25), kiosk.Position + Vector3.new(0, 0.5, -7.1), C.Glass, 0.18, false, Enum.Material.Glass)
 	end
 	local arch = part(parent, "StadiumGateway", Vector3.new(145, 7, 8), Vector3.new(centre.X, 28, centre.Z - 236), C.Navy, 0, true, Enum.Material.Metal)
 	textFace(arch, label, Enum.NormalId.Front)
-	for _, x in ipairs({ -66, 66 }) do
-		part(parent, "GatewayPylon", Vector3.new(7, 32, 7), Vector3.new(centre.X + x, 16, centre.Z - 236), accent, 0, true, Enum.Material.Metal)
-	end
+	for _, x in ipairs({ -66, 66 }) do part(parent, "GatewayPylon", Vector3.new(7, 32, 7), Vector3.new(centre.X + x, 16, centre.Z - 236), accent, 0, true, Enum.Material.Metal) end
 	for _, x in ipairs({ -90, -60, 60, 90 }) do lamp(parent, Vector3.new(centre.X + x, 0, centre.Z - 205)) end
 	bench(parent, Vector3.new(centre.X - 78, 0, centre.Z - 205), 0)
 	bench(parent, Vector3.new(centre.X + 78, 0, centre.Z - 205), 0)
 end
 
-local function createNewStadiumDistricts(layer)
+local function createFutureStadiums(layer)
 	local roads = Instance.new("Model")
 	roads.Name = "FutureStadiumRoadsV8"
 	roads.Parent = layer
 
-	-- Westhaven loop connects directly to existing TownH950 at x=-300.
+	-- Both are closed loops with a direct connection to the existing road grid.
 	roadH(roads, "WesthavenNorthConnector", -1450, -300, 950, 30)
-	roadH(roads, "WesthavenSouthLoop", -1450, -1050, 500, 30)
-	roadV(roads, "WesthavenWestLoop", -1450, 500, 950, 30)
-	roadV(roads, "WesthavenEastLoop", -1050, 500, 950, 30)
+	roadH(roads, "WesthavenSouthLoop", -1450, -1050, 430, 30)
+	roadV(roads, "WesthavenWestLoop", -1450, 430, 950, 30)
+	roadV(roads, "WesthavenEastLoop", -1050, 430, 950, 30)
 
-	-- Royal City loop connects to the existing town/east orbital at x=900.
 	roadH(roads, "RoyalNorthConnector", 900, 2050, 950, 32)
-	roadH(roads, "RoyalSouthLoop", 1650, 2050, 450, 32)
-	roadV(roads, "RoyalWestLoop", 1650, 450, 950, 32)
-	roadV(roads, "RoyalEastLoop", 2050, 450, 950, 32)
+	roadH(roads, "RoyalSouthLoop", 1650, 2050, 400, 32)
+	roadV(roads, "RoyalWestLoop", 1650, 400, 950, 32)
+	roadV(roads, "RoyalEastLoop", 2050, 400, 950, 32)
 
 	local west = Instance.new("Model")
 	west.Name = "WesthavenUnitedComplex"
 	west.Parent = layer
-	local westCentre = Vector3.new(-1250, 0, 720)
-	part(west, "DistrictGround", Vector3.new(360, 0.5, 410), Vector3.new(westCentre.X, -0.35, westCentre.Z), Color3.fromRGB(61, 105, 59), 0, true, Enum.Material.Grass)
-	createStadiumComplex(west, "WesthavenHarbourStadium", westCentre, C.Teal, "WESTHAVEN UNITED", "DOUBLE-TIER HARBOUR STADIUM", false)
-	stadiumSupportVillage(west, westCentre, C.Teal, "WESTHAVEN UNITED • HARBOUR STADIUM")
+	local wc = Vector3.new(-1250, 0, 720)
+	part(west, "DistrictGround", Vector3.new(360, 0.5, 410), Vector3.new(wc.X, -0.35, wc.Z), Color3.fromRGB(61, 105, 59), 0, true, Enum.Material.Grass)
+	createStadium(west, "WesthavenHarbourStadium", wc, C.Teal, "WESTHAVEN UNITED", "DOUBLE-TIER HARBOUR STADIUM", false)
+	supportVillage(west, wc, C.Teal, "WESTHAVEN UNITED • HARBOUR STADIUM")
 	parkingLot(west, Vector3.new(-1370, 0, 720), 92, 250)
 	parkingLot(west, Vector3.new(-1130, 0, 720), 92, 250)
 	part(west, "ClubStore", Vector3.new(58, 14, 34), Vector3.new(-1330, 7, 900), C.Teal, 0, true, Enum.Material.Concrete)
 	part(west, "SupportersPub", Vector3.new(62, 13, 36), Vector3.new(-1170, 6.5, 900), Color3.fromRGB(115, 76, 58), 0, true, Enum.Material.Brick)
-	for _, p in ipairs({ Vector3.new(-1415, 0, 920), Vector3.new(-1085, 0, 920), Vector3.new(-1415, 0, 520), Vector3.new(-1085, 0, 520) }) do tree(west, p, 0.9) end
 
 	local royal = Instance.new("Model")
 	royal.Name = "RoyalCityFootballDistrict"
 	royal.Parent = layer
-	local royalCentre = Vector3.new(1850, 0, 700)
-	part(royal, "DistrictGround", Vector3.new(360, 0.5, 430), Vector3.new(royalCentre.X, -0.35, royalCentre.Z), Color3.fromRGB(58, 102, 58), 0, true, Enum.Material.Grass)
-	createStadiumComplex(royal, "RoyalCrownArena", royalCentre, C.Purple, "ROYAL CITY FC", "DOUBLE-TIER CROWN DOME", true)
-	stadiumSupportVillage(royal, royalCentre, C.Purple, "ROYAL CITY FC • CROWN DOME")
+	local rc = Vector3.new(1850, 0, 700)
+	part(royal, "DistrictGround", Vector3.new(360, 0.5, 430), Vector3.new(rc.X, -0.35, rc.Z), Color3.fromRGB(58, 102, 58), 0, true, Enum.Material.Grass)
+	createStadium(royal, "RoyalCrownArena", rc, C.Purple, "ROYAL CITY FC", "DOUBLE-TIER CROWN DOME", true)
+	supportVillage(royal, rc, C.Purple, "ROYAL CITY FC • CROWN DOME")
 	parkingLot(royal, Vector3.new(1730, 0, 700), 92, 250)
 	parkingLot(royal, Vector3.new(1970, 0, 700), 92, 250)
 	part(royal, "ClubMegastore", Vector3.new(70, 16, 38), Vector3.new(1745, 8, 915), C.Purple, 0, true, Enum.Material.Concrete)
 	part(royal, "StadiumHotel", Vector3.new(76, 36, 46), Vector3.new(1955, 18, 910), Color3.fromRGB(86, 91, 99), 0, true, Enum.Material.Concrete)
-	for floor = 1, 4 do
-		part(royal, "HotelGlass", Vector3.new(60, 3.8, 0.24), Vector3.new(1955, floor * 7.2, 886.8), C.Glass, 0.16, false, Enum.Material.Glass)
-	end
-	for _, p in ipairs({ Vector3.new(1685, 0, 920), Vector3.new(2015, 0, 920), Vector3.new(1685, 0, 475), Vector3.new(2015, 0, 475) }) do tree(royal, p, 0.95) end
+	for floor = 1, 4 do part(royal, "HotelGlass", Vector3.new(60, 3.8, 0.24), Vector3.new(1955, floor * 7.2, 886.8), C.Glass, 0.16, false, Enum.Material.Glass) end
 end
 
-local function collectRoadSurfaces(root)
+local function collectRoads(root)
 	local roads = {}
 	for _, obj in ipairs(root:GetDescendants()) do
-		if obj:IsA("BasePart") and obj:GetAttribute("RoadInfrastructure") == true and obj.Material == Enum.Material.Asphalt and obj.Size.Y <= 1 then
-			table.insert(roads, obj)
-		end
+		if obj:IsA("BasePart") and obj:GetAttribute("RoadInfrastructure") == true and obj.Material == Enum.Material.Asphalt and obj.Size.Y <= 1 then table.insert(roads, obj) end
 	end
 	return roads
 end
@@ -407,33 +357,26 @@ local function overlapsXZ(a, b)
 	return math.abs(a.Position.X - b.Position.X) <= (a.Size.X + b.Size.X) / 2 and math.abs(a.Position.Z - b.Position.Z) <= (a.Size.Z + b.Size.Z) / 2
 end
 
-local function buildIntersectionCleanup(layer, root)
-	local roads = collectRoadSurfaces(root)
+local function cleanIntersections(layer, root)
+	local roads = collectRoads(root)
 	local clean = Instance.new("Model")
 	clean.Name = "IntersectionCleanupV8"
 	clean.Parent = layer
-	local made = {}
-	local count = 0
+	local made, count = {}, 0
 	for i = 1, #roads do
 		local a = roads[i]
-		local aHorizontal = a.Size.X > a.Size.Z * 1.5
-		local aVertical = a.Size.Z > a.Size.X * 1.5
-		if aHorizontal or aVertical then
+		local ah, av = a.Size.X > a.Size.Z * 1.5, a.Size.Z > a.Size.X * 1.5
+		if ah or av then
 			for j = i + 1, #roads do
 				local b = roads[j]
-				local bHorizontal = b.Size.X > b.Size.Z * 1.5
-				local bVertical = b.Size.Z > b.Size.X * 1.5
-				if ((aHorizontal and bVertical) or (aVertical and bHorizontal)) and overlapsXZ(a, b) then
-					local h = aHorizontal and a or b
-					local v = aVertical and a or b
+				local bh, bv = b.Size.X > b.Size.Z * 1.5, b.Size.Z > b.Size.X * 1.5
+				if ((ah and bv) or (av and bh)) and overlapsXZ(a, b) then
+					local h, v = ah and a or b, av and a or b
 					local x, z = v.Position.X, h.Position.Z
 					local key = tostring(math.floor(x + 0.5)) .. ":" .. tostring(math.floor(z + 0.5))
 					if not made[key] then
-						made[key] = true
-						count += 1
-						local cap = roadPart(part(clean, "IntersectionCap", Vector3.new(v.Size.X + 1.0, 0.08, h.Size.Z + 1.0), Vector3.new(x, 0.39, z), C.Road, 0, false, Enum.Material.Asphalt))
-						cap:SetAttribute("IntersectionKey", key)
-						-- Clean stop lines at each approach after old overlapping markings are covered.
+						made[key], count = true, count + 1
+						roadPart(part(clean, "IntersectionCap", Vector3.new(v.Size.X + 1, 0.08, h.Size.Z + 1), Vector3.new(x, 0.39, z), C.Road, 0, false, Enum.Material.Asphalt))
 						part(clean, "StopLineN", Vector3.new(v.Size.X - 3, 0.035, 0.35), Vector3.new(x, 0.45, z + h.Size.Z / 2 - 2.1), C.White, 0, false)
 						part(clean, "StopLineS", Vector3.new(v.Size.X - 3, 0.035, 0.35), Vector3.new(x, 0.45, z - h.Size.Z / 2 + 2.1), C.White, 0, false)
 						part(clean, "StopLineE", Vector3.new(0.35, 0.035, h.Size.Z - 3), Vector3.new(x + v.Size.X / 2 - 2.1, 0.45, z), C.White, 0, false)
@@ -446,72 +389,52 @@ local function buildIntersectionCleanup(layer, root)
 	layer:SetAttribute("IntersectionCapsBuilt", count)
 end
 
-local PROP_NAME_WORDS = { "Tree", "Bench", "Lamp", "Sign", "Kiosk", "Flag", "Bollard", "Planter", "Fence", "Shelter", "Cone", "Post" }
-
-local function looksLikeRemovableProp(obj)
-	if obj:GetAttribute("WorldDetailV6") == true or obj:GetAttribute("WorldDetailV8") == true then return true end
-	for _, word in ipairs(PROP_NAME_WORDS) do
-		if string.find(obj.Name, word) then return true end
-	end
+local PROP_WORDS = { "Tree", "Bench", "Lamp", "Sign", "Kiosk", "Flag", "Bollard", "Planter", "Fence", "Shelter", "Cone", "Post" }
+local function isRoadsideProp(obj)
+	for _, word in ipairs(PROP_WORDS) do if string.find(obj.Name, word) then return true end end
 	return false
 end
 
-local function insideRoadFootprint(obj, road)
-	local halfObjX, halfObjZ = obj.Size.X / 2, obj.Size.Z / 2
-	local halfRoadX, halfRoadZ = road.Size.X / 2 - 0.6, road.Size.Z / 2 - 0.6
-	return math.abs(obj.Position.X - road.Position.X) < halfObjX + halfRoadX and math.abs(obj.Position.Z - road.Position.Z) < halfObjZ + halfRoadZ
+local function footprintOverlap(obj, road)
+	return math.abs(obj.Position.X - road.Position.X) < obj.Size.X / 2 + road.Size.X / 2 - 0.6
+		and math.abs(obj.Position.Z - road.Position.Z) < obj.Size.Z / 2 + road.Size.Z / 2 - 0.6
 end
 
-local function auditScenicRoadOverlap(layer, root)
-	local roads = collectRoadSurfaces(root)
+local function auditRoadsideProps(layer, root)
+	local roads = collectRoads(root)
 	local removed = 0
-	local candidates = {}
+	local props = {}
 	for _, obj in ipairs(root:GetDescendants()) do
-		if obj:IsA("BasePart") and obj.CanCollide and obj:GetAttribute("RoadInfrastructure") ~= true and obj.Position.Y < 6 and looksLikeRemovableProp(obj) then
-			table.insert(candidates, obj)
-		end
+		if obj:IsA("BasePart") and obj.CanCollide and obj:GetAttribute("RoadInfrastructure") ~= true and obj.Position.Y < 7 and isRoadsideProp(obj) then table.insert(props, obj) end
 	end
-	for _, obj in ipairs(candidates) do
+	for _, obj in ipairs(props) do
 		if obj.Parent then
 			for _, road in ipairs(roads) do
-				if obj.Parent and insideRoadFootprint(obj, road) then
+				if obj.Parent and footprintOverlap(obj, road) then
 					local vehicle = obj:FindFirstAncestorWhichIsA("Model")
-					if not (vehicle and vehicle:GetAttribute("RTGVehicle") == true) then
-						obj:Destroy()
-						removed += 1
-					end
+					if not (vehicle and vehicle:GetAttribute("RTGVehicle") == true) then obj:Destroy(); removed += 1 end
 					break
 				end
 			end
 		end
 	end
-	layer:SetAttribute("ScenicRoadOverlapPartsRemoved", removed)
+	layer:SetAttribute("RoadsidePropsRemoved", removed)
 end
 
-local function addScenicBuffers(layer)
+local function scenicBuffers(layer)
 	local scenic = Instance.new("Model")
 	scenic.Name = "ScenicBuffersV8"
 	scenic.Parent = layer
+	for x = -1420, -1080, 55 do tree(scenic, Vector3.new(x, 0, 455), 0.85); tree(scenic, Vector3.new(x, 0, 985), 0.85) end
+	for x = 1680, 2020, 55 do tree(scenic, Vector3.new(x, 0, 425), 0.9); tree(scenic, Vector3.new(x, 0, 985), 0.9) end
 
-	-- Stadium approach boulevards and green buffers, intentionally outside carriageways.
-	for x = -1420, -1080, 55 do
-		tree(scenic, Vector3.new(x, 0, 470), 0.85)
-		tree(scenic, Vector3.new(x, 0, 980), 0.85)
-	end
-	for x = 1680, 2020, 55 do
-		tree(scenic, Vector3.new(x, 0, 420), 0.9)
-		tree(scenic, Vector3.new(x, 0, 980), 0.9)
-	end
+	local westPark = part(scenic, "WesthavenSupportersPark", Vector3.new(170, 0.24, 80), Vector3.new(-1250, 0.15, 1050), C.DarkGrass, 0, true, Enum.Material.Grass)
+	for _, p in ipairs({ Vector3.new(-1310, 0, 1035), Vector3.new(-1270, 0, 1070), Vector3.new(-1230, 0, 1035), Vector3.new(-1190, 0, 1070) }) do tree(scenic, p, 0.8) end
+	bench(scenic, westPark.Position + Vector3.new(-45, 0, 0), 90); bench(scenic, westPark.Position + Vector3.new(45, 0, 0), -90)
 
-	local westPark = part(scenic, "WesthavenSupportersPark", Vector3.new(170, 0.24, 80), Vector3.new(-1250, 0.15, 1040), C.DarkGrass, 0, true, Enum.Material.Grass)
-	for _, p in ipairs({ Vector3.new(-1310, 0, 1020), Vector3.new(-1270, 0, 1050), Vector3.new(-1230, 0, 1020), Vector3.new(-1190, 0, 1050) }) do tree(scenic, p, 0.8) end
-	bench(scenic, westPark.Position + Vector3.new(-45, 0, 0), 90)
-	bench(scenic, westPark.Position + Vector3.new(45, 0, 0), -90)
-
-	local royalPark = part(scenic, "RoyalCityFanGardens", Vector3.new(170, 0.24, 80), Vector3.new(1850, 0.15, 1040), C.DarkGrass, 0, true, Enum.Material.Grass)
-	for _, p in ipairs({ Vector3.new(1790, 0, 1020), Vector3.new(1830, 0, 1050), Vector3.new(1870, 0, 1020), Vector3.new(1910, 0, 1050) }) do tree(scenic, p, 0.85) end
-	bench(scenic, royalPark.Position + Vector3.new(-45, 0, 0), 90)
-	bench(scenic, royalPark.Position + Vector3.new(45, 0, 0), -90)
+	local royalPark = part(scenic, "RoyalCityFanGardens", Vector3.new(170, 0.24, 80), Vector3.new(1850, 0.15, 1050), C.DarkGrass, 0, true, Enum.Material.Grass)
+	for _, p in ipairs({ Vector3.new(1790, 0, 1035), Vector3.new(1830, 0, 1070), Vector3.new(1870, 0, 1035), Vector3.new(1910, 0, 1070) }) do tree(scenic, p, 0.85) end
+	bench(scenic, royalPark.Position + Vector3.new(-45, 0, 0), 90); bench(scenic, royalPark.Position + Vector3.new(45, 0, 0), -90)
 end
 
 function WorldScenicV8Service:Init(worldBuilder)
@@ -519,15 +442,14 @@ function WorldScenicV8Service:Init(worldBuilder)
 	if not root or not root.Parent then return end
 	local old = root:FindFirstChild("WorldScenicV8")
 	if old then old:Destroy() end
-
 	local layer = Instance.new("Model")
 	layer.Name = "WorldScenicV8"
 	layer.Parent = root
 
-	createNewStadiumDistricts(layer)
-	addScenicBuffers(layer)
-	buildIntersectionCleanup(layer, root)
-	auditScenicRoadOverlap(layer, root)
+	createFutureStadiums(layer)
+	scenicBuffers(layer)
+	cleanIntersections(layer, root)
+	auditRoadsideProps(layer, root)
 
 	root:SetAttribute("WorldScenicVersion", "V8")
 	root:SetAttribute("DoubleTierStadiumCount", 2)
