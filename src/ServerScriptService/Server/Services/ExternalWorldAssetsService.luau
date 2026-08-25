@@ -1,5 +1,5 @@
-local AssetService = game:GetService("AssetService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 
 local Catalog = require(ReplicatedStorage.Shared.WorldAssetCatalog)
 
@@ -25,7 +25,8 @@ local function sanitizeAsset(model)
 			descendant:Destroy()
 		elseif descendant:IsA("BasePart") then
 			descendant.Anchored = true
-			-- Remove invisible non-collidable helper/trigger parts so they do not distort scaling.
+			descendant.AssemblyLinearVelocity = Vector3.zero
+			descendant.AssemblyAngularVelocity = Vector3.zero
 			if descendant.Transparency >= 0.99 and descendant.CanCollide == false then
 				descendant:Destroy()
 			end
@@ -50,7 +51,6 @@ local function fitAndGround(model, targetPosition, yaw, maxFootprint)
 	scale = math.clamp(scale, 0.03, 6)
 	model:ScaleTo(model:GetScale() * scale)
 
-	-- First orient the model, then use its real bounding box to centre and ground it.
 	model:PivotTo(CFrame.new(targetPosition + Vector3.new(0, maxFootprint.Y * 0.5, 0)) * CFrame.Angles(0, math.rad(yaw or 0), 0))
 	local boxCf, boxSize = model:GetBoundingBox()
 	local bottom = boxCf.Position.Y - boxSize.Y / 2
@@ -112,25 +112,48 @@ local function makePropertyNode(parent, entry)
 	return node
 end
 
-local function loadExternalAsset(assetId)
-	local ok, loaded = pcall(AssetService.LoadAssetAsync, AssetService, assetId)
-	if not ok or not loaded then
-		return nil, tostring(loaded)
+local function cloneSlotContents(slot, assetId)
+	if not slot then return nil, "slot folder missing" end
+
+	local sourceModel = slot:FindFirstChildWhichIsA("Model")
+	if sourceModel then
+		return sourceModel:Clone()
 	end
-	return loaded
+
+	local children = slot:GetChildren()
+	if #children == 0 then
+		return nil, "slot is empty"
+	end
+
+	local wrapper = Instance.new("Model")
+	wrapper.Name = "ImportedAsset_" .. tostring(assetId)
+	for _, child in ipairs(children) do
+		if child:IsA("BasePart") or child:IsA("Folder") or child:IsA("Model") then
+			child:Clone().Parent = wrapper
+		end
+	end
+	if #wrapper:GetChildren() == 0 then
+		wrapper:Destroy()
+		return nil, "slot has no usable model/parts"
+	end
+	return wrapper
 end
 
-function ExternalWorldAssetsService:ReplaceResidential(root, entry)
+function ExternalWorldAssetsService:ReplaceResidential(root, entry, intake)
 	local district = root:FindFirstChild(entry.TargetDistrict)
 	if not district then
-		warn(string.format("RTG 3D asset %d skipped: district %s not found", entry.AssetId, entry.TargetDistrict))
+		warn(string.format("RTG local 3D asset %d skipped: district %s not found", entry.AssetId, entry.TargetDistrict))
 		return false
 	end
 
-	local oldModel = district:FindFirstChild(entry.TargetModel)
-	local loaded, loadError = loadExternalAsset(entry.AssetId)
+	local slotName = "Asset_" .. tostring(entry.AssetId)
+	local slot = intake and intake:FindFirstChild(slotName)
+	local loaded, loadError = cloneSlotContents(slot, entry.AssetId)
 	if not loaded then
-		warn(string.format("RTG 3D asset %d failed to load for %s: %s", entry.AssetId, entry.DisplayName, loadError or "unknown error"))
+		if slot then
+			slot:SetAttribute("RTGImportStatus", "EMPTY")
+		end
+		warn(string.format("RTG 3D asset %d not imported yet for %s (%s)", entry.AssetId, entry.DisplayName, loadError or "missing local model"))
 		return false
 	end
 
@@ -143,15 +166,20 @@ function ExternalWorldAssetsService:ReplaceResidential(root, entry)
 	local fitted, fitError = fitAndGround(loaded, entry.Position, entry.Yaw, entry.MaxFootprint)
 	if not fitted then
 		loaded:Destroy()
-		warn(string.format("RTG 3D asset %d could not be fitted: %s", entry.AssetId, fitError or "unknown error"))
+		if slot then slot:SetAttribute("RTGImportStatus", "INVALID") end
+		warn(string.format("RTG local 3D asset %d could not be fitted: %s", entry.AssetId, fitError or "unknown error"))
 		return false
 	end
 
-	-- Only remove the procedural placeholder after the real model is confirmed usable.
+	local oldModel = district:FindFirstChild(entry.TargetModel)
 	if oldModel then oldModel:Destroy() end
+	local previous = district:FindFirstChild("3D_" .. entry.PropertyId)
+	if previous then previous:Destroy() end
+
 	makePlotBase(district, entry)
-	makePropertyNode(loaded, entry)
 	loaded.Parent = district
+	makePropertyNode(loaded, entry)
+	if slot then slot:SetAttribute("RTGImportStatus", "LOADED") end
 	return true
 end
 
@@ -162,27 +190,32 @@ function ExternalWorldAssetsService:Init(worldBuilder)
 		return
 	end
 
-	local allowCheckOk, allowThirdParty = pcall(function()
-		return AssetService.AllowInsertFreeAssets
-	end)
-	if allowCheckOk and allowThirdParty == false then
-		warn("RTG ExternalWorldAssets: third-party Creator Store loading is OFF. In Roblox Studio enable Experience/Game Settings > Security > Allow Loading Third Party Assets, then restart Play.")
+	local intake = ServerStorage:FindFirstChild("RTGImportedAssets")
+	if not intake then
+		warn("RTG ExternalWorldAssets: ServerStorage/RTGImportedAssets is missing. Reconnect Rojo after git pull.")
+		return
 	end
 
 	local loadedCount = 0
 	local total = #(Catalog.ResidentialModern or {})
+	local missing = {}
 	for _, entry in ipairs(Catalog.ResidentialModern or {}) do
-		if self:ReplaceResidential(root, entry) then
+		if self:ReplaceResidential(root, entry, intake) then
 			loadedCount += 1
+		else
+			table.insert(missing, tostring(entry.AssetId))
 		end
-		task.wait(0.05)
 	end
 
 	root:SetAttribute("ExternalResidentialAssetCount", loadedCount)
 	root:SetAttribute("ExternalResidentialAssetTargetCount", total)
-	root:SetAttribute("ExternalResidentialAssetsVersion", "V7")
+	root:SetAttribute("ExternalResidentialAssetsVersion", "V7_LOCAL")
 	worldBuilder.ExternalWorldAssets = self
-	print(string.format("Road to Glory external 3D residential assets: %d/%d loaded", loadedCount, total))
+
+	print(string.format("Road to Glory local 3D residential assets: %d/%d loaded", loadedCount, total))
+	if #missing > 0 then
+		warn("RTG 3D IMPORT REQUIRED: Insert each Creator Store model with Toolbox, then drag it into ServerStorage > RTGImportedAssets > Asset_<ID>. Missing: " .. table.concat(missing, ", "))
+	end
 end
 
 return ExternalWorldAssetsService
