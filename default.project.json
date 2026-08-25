@@ -7,6 +7,19 @@
         "$path": "src/ReplicatedStorage/Shared"
       }
     },
+    "ServerStorage": {
+      "RTGImportedAssets": {
+        "$className": "Folder",
+        "Asset_17383957280": { "$className": "Folder" },
+        "Asset_317197851": { "$className": "Folder" },
+        "Asset_93115987040579": { "$className": "Folder" },
+        "Asset_16864783838": { "$className": "Folder" },
+        "Asset_7386892311": { "$className": "Folder" },
+        "Asset_3989187388": { "$className": "Folder" },
+        "Asset_16947224454": { "$className": "Folder" },
+        "Asset_8019635721": { "$className": "Folder" }
+      }
+    },
     "ServerScriptService": {
       "Server": {
         "$path": "src/ServerScriptService/Server"
